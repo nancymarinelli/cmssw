@@ -23,8 +23,8 @@ setenv TYPE pfPhotons
 setenv COMPAREWITH Photons
 setenv CMSSWver1 6_2_0
 setenv RELEASE   6_2_0
-setenv PRERELEASE pre6_patch1
-setenv FULLGLOBALTAG PRE_ST62_V6-v1
+setenv PRERELEASE pre8
+setenv FULLGLOBALTAG PRE_ST62_V8-v1
 
 
 setenv RELEASE ${RELEASE}_${PRERELEASE}
@@ -74,8 +74,8 @@ setenv ROOTFILE ${WorkDir1}/DQM_V0001_R000000001__SingleGammaPt35__CMSSW_${RELEA
 
 else if ($SAMPLE == H130GGgluonfusion) then 
 
-#setenv ROOTFILE ${WorkDir1}/DQM_V0001_R000000001__RelValH130GGgluonfusion__CMSSW_${RELEASE}-${FULLGLOBALTAG}__DQM.root
-setenv ROOTFILE ${WorkDir1}/DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO_2K.root
+setenv ROOTFILE ${WorkDir1}/DQM_V0001_R000000001__RelValH130GGgluonfusion__CMSSW_${RELEASE}-${FULLGLOBALTAG}__DQM.root
+#setenv ROOTFILE ${WorkDir1}/DQM_V0001_R000000001__Global__CMSSW_X_Y_Z__RECO_2K.root
 
 
 else if ($SAMPLE == PhotonJets_Pt_10) then
@@ -227,10 +227,8 @@ EOF
 
 
 cat > unscaledhistosForPhotons <<EOF
-pEResVsR9All
 pEResVsR9Barrel
 pEResVsR9Endcap
-scpEResVsR9All
 scpEResVsR9Barrel
 scpEResVsR9Endcap
 pEResVsEtAll
@@ -258,24 +256,7 @@ EOF
 
 
 
-cat > 2dhistosForPhotons <<EOF
-  R9VsEtaAll
-  R1VsEtaAll
-  R2VsEtaAll
-  R9VsEtAll
-  R1VsEtAll
-  R2VsEtAll
-  sigmaIetaIetaVsEtaAll
-  isoTrkSolidConeDR04VsEtaAll
-  nTrkSolidConeDR04VsEtaAll
-  eResVsR9All
-  eResVsR9Barrel
-  eResVsR9Endcap
-  sceResVsR9All
-  sceResVsR9Barrel
-  sceResVsR9Endcap
 
-EOF
 
 
 cat > efficiencyForConvertedPhotons <<EOF
@@ -380,11 +361,6 @@ hTkPtPullBarrel
 hTkPtPullEndcap
 hDPhiTracksAtVtxAll
 hDCotTracksAll
-hDEtaTracksAtEcalAll
-hDPhiTracksAtEcalAll
-eBcOverTkPoutAll
-eBcOverTkPoutBarrel
-eBcOverTkPoutEndcap
 zPVFromTracksAll
 zPVFromTracksBarrel
 zPVFromTracksEndcap
@@ -401,8 +377,6 @@ pChi2VsEtaAll
 pChi2VsRAll
 pDCotTracksVsEtaAll
 pDCotTracksVsRAll
-pDPhiTracksAtEcalVsEtaAll
-pDPhiTracksAtEcalVsRAll
 pdzPVVsR
 
 
@@ -676,31 +650,6 @@ EOF
 end
 
 
-
-
-
-foreach i (`cat 2dhistosForPhotons`)
-  cat > temp$N.C <<EOF
-TCanvas *c$i = new TCanvas("c$i");
-c$i->SetFillColor(10);
-file->cd("$HISTOPATHNAME1_Photons");
-$i->SetStats(0);
-$i->SetMinimum(0.);
-$i->SetMarkerColor(kPink+8);
-$i->SetMarkerStyle(2);
-$i->SetMarkerSize(0.2);
-$i->Draw();
-file->cd("$HISTOPATHNAME2_Photons");
-$i->SetStats(0);
-$i->SetMarkerColor(kBlack);
-$i->SetMarkerStyle(2);
-$i->SetMarkerSize(0.2);
-$i->Draw("same");
-c$i->SaveAs("gifs/$i.gif");
-
-EOF
-  setenv N `expr $N + 1`
-end
 
 
 foreach i (`cat efficiencyForConvertedPhotons`)
@@ -1113,7 +1062,6 @@ rm  validationPlotsTemplate.html
 
 rm scaledhistosForPhotons
 rm unscaledhistosForPhotons
-rm 2dhistosForPhotons
 rm efficiencyForPhotons
 rm scaledhistosForPhotonsLogScale
 rm efficiencyForConvertedPhotons
@@ -1123,7 +1071,9 @@ rm projectionsForConvertedPhotons
 rm scaledhistosForTracks
 rm unscaledhistosForTracks
 rm scaledhistosForPhotonsLogScale
-
+rm scaledhistosForConvertedPhotons
+rm scaledhistosForConvertedPhotonsLogScale
+rm unscaledhistosForConvertedPhotons
 
 
 #echo "Now paste the following into your terminal window:"
