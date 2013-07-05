@@ -20,7 +20,7 @@
 setenv RUNTYPE Central
 #setenv RUNTYPE Local
 setenv STARTUP True
-setenv FASTSIM False
+setenv FASTSIM True
 setenv UPGRADE False
 ## TYPE options: Photons, GEDPhotons
 setenv TYPE Photons
@@ -31,18 +31,18 @@ setenv CMSSWver1 6_2_0
 setenv CMSSWver2 6_2_0
 setenv OLDRELEASE 6_2_0
 setenv NEWRELEASE 6_2_0
-setenv OLDPRERELEASE pre5
-setenv NEWPRERELEASE pre6_patch1
+setenv OLDPRERELEASE pre7 
+setenv NEWPRERELEASE pre8
 setenv UPGRADEVER  UPG2017
 setenv LHCENERGY   14
 
 
 if ( $STARTUP == True &&  $FASTSIM == False) then
-setenv OLDGLOBALTAG PRE_ST61_V1-v1
-setenv NEWGLOBALTAG PRE_ST62_V6-v1
+setenv OLDGLOBALTAG g496p02-PRE_ST62_V7-v1
+setenv NEWGLOBALTAG PRE_ST62_V8-v1
 else if (  $STARTUP == True  && $FASTSIM == True) then
-setenv OLDGLOBALTAG START61_V11_FastSim-v1
-setenv NEWGLOBALTAG PRE_ST61_V1_FastSim-v1
+setenv OLDGLOBALTAG PRE_ST62_V7_FastSim-v3
+setenv NEWGLOBALTAG PRE_ST62_V8_FastSim-v1
 endif
 
 
@@ -103,7 +103,7 @@ if ( $RUNTYPE == Local ) then
 setenv OLDFILE ${WorkDir1}/PhotonValidationRelVal${OLDRELEASE}_SingleGammaPt10.root
 setenv NEWFILE ${WorkDir2}/PhotonValidationRelVal${NEWRELEASE}_SingleGammaPt10.root
 else if ( $RUNTYPE == Central ) then
-setenv OLDFILE ${WorkDir1}/DQM_V0001_R000000001__RelValSingleGammaPt10__CMSSW_${OLDRELEASE}-${OLDGLOBALTAG}__DQM.root
+setenv OLDFILE ${WorkDir1}/DQM_V0001_R000000001__RelValSingleGammaPt10__CMSSW_${OLDRELEASE}_${OLDGLOBALTAG}__DQM.root
 if ( $UPGRADE == True ) then
 setenv NEWFILE ${WorkDir2}/DQM_V0001_R000000001__RelValSingleGammaPt10_${UPGRADEVER}__CMSSW_${NEWRELEASE}-${NEWGLOBALTAG}__DQM.root
 else 
@@ -119,7 +119,7 @@ setenv OLDFILE ${WorkDir1}/PhotonValidationRelVal${OLDRELEASE}_SingleGammaPt35.r
 setenv NEWFILE ${WorkDir2}/PhotonValidationRelVal${NEWRELEASE}_SingleGammaPt35.root
 
 else if ( $RUNTYPE == Central ) then
-setenv OLDFILE ${WorkDir1}/DQM_V0001_R000000001__RelValSingleGammaPt35__CMSSW_${OLDRELEASE}-${OLDGLOBALTAG}__DQM.root
+setenv OLDFILE ${WorkDir1}/DQM_V0001_R000000001__RelValSingleGammaPt35__CMSSW_${OLDRELEASE}_${OLDGLOBALTAG}__DQM.root
 if ( $UPGRADE == True ) then
 setenv NEWFILE ${WorkDir2}/DQM_V0001_R000000001__RelValSingleGammaPt35_${UPGRADEVER}__CMSSW_${NEWRELEASE}-${NEWGLOBALTAG}__DQM.root
 else 
