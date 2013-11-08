@@ -56,7 +56,7 @@
 #include "RecoEgamma/EgammaMCTools/interface/PhotonMCTruth.h"
 #include "RecoEgamma/EgammaMCTools/interface/ElectronMCTruth.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
-#include "RecoCaloTools/MetaCollections/interface/CaloRecHitMetaCollections.h"
+
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
@@ -82,69 +82,52 @@ using namespace std;
 
 
 PhotonValidator::PhotonValidator( const edm::ParameterSet& pset )
-{
-  fName_     = pset.getParameter<std::string>("analyzerName");
-  verbosity_ = pset.getUntrackedParameter<int>("Verbosity");
-  parameters_ = pset;
-  fastSim_ =   pset.getParameter<bool>("fastSim");
-  isRunCentrally_=   pset.getParameter<bool>("isRunCentrally");
+  {
 
-  photonCollectionProducer_ = pset.getParameter<std::string>("phoProducer");
-  photonCollection_ = pset.getParameter<std::string>("photonCollection");
-  photonCollectionToken_ = consumes<reco::PhotonCollection>(
-      edm::InputTag(photonCollectionProducer_,
-                    photonCollection_));
+    fName_     = pset.getParameter<std::string>("analyzerName");
+    verbosity_ = pset.getUntrackedParameter<int>("Verbosity");
+    parameters_ = pset;
+    fastSim_ =   pset.getParameter<bool>("fastSim");
+    isRunCentrally_=   pset.getParameter<bool>("isRunCentrally");
 
-  token_tp_   = consumes<TrackingParticleCollection>(
-      pset.getParameter<edm::InputTag>("label_tp"));
+    photonCollectionProducer_ =  consumes<reco::PhotonCollection>(pset.getParameter<edm::InputTag>("phoProducer"));
 
-  barrelEcalHits_   = consumes<EcalRecHitCollection>(
-      pset.getParameter<edm::InputTag>("barrelEcalHits"));
-  endcapEcalHits_   = consumes<EcalRecHitCollection>(
-      pset.getParameter<edm::InputTag>("endcapEcalHits"));
+    barrelEcalHits_   =
+      consumes<EcalRecHitCollection>(pset.getParameter<edm::InputTag>("barrelEcalHits"));
+    endcapEcalHits_   =
+      consumes<EcalRecHitCollection>(pset.getParameter<edm::InputTag>("endcapEcalHits"));
+    vertexProducer_   =
+      consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("primaryVertexProducer"));
+    genJets_ = consumes<reco::GenJetCollection>(pset.getParameter<edm::InputTag>("genJets"));
 
-  conversionOITrackProducer_ = pset.getParameter<std::string>("conversionOITrackProducer");
-  conversionIOTrackProducer_ = pset.getParameter<std::string>("conversionIOTrackProducer");
-  conversionOITrackPr_Token_ = consumes<edm::View<reco::Track> >(
-      edm::InputTag(conversionOITrackProducer_));
-  conversionIOTrackPr_Token_ = consumes<edm::View<reco::Track> >(
-      edm::InputTag(conversionIOTrackProducer_));
+    trackingParticle_   = consumes<TrackingParticleCollection>(pset.getParameter<edm::InputTag>("trackingParticle"));
+    conversionOITrackProducer_ = pset.getParameter<edm::InputTag>("conversionOITrackProducer");
+    conversionIOTrackProducer_ = pset.getParameter<edm::InputTag>("conversionIOTrackProducer");
 
-  minPhoEtCut_ = pset.getParameter<double>("minPhoEtCut");
-  convTrackMinPtCut_ = pset.getParameter<double>("convTrackMinPtCut");
-  likelihoodCut_ = pset.getParameter<double>("likelihoodCut");
 
-  trkIsolExtRadius_ = pset.getParameter<double>("trkIsolExtR");
-  trkIsolInnRadius_ = pset.getParameter<double>("trkIsolInnR");
-  trkPtLow_     = pset.getParameter<double>("minTrackPtCut");
-  lip_       = pset.getParameter<double>("lipCut");
-  ecalIsolRadius_ = pset.getParameter<double>("ecalIsolR");
-  bcEtLow_     = pset.getParameter<double>("minBcEtCut");
-  hcalIsolExtRadius_ = pset.getParameter<double>("hcalIsolExtR");
-  hcalIsolInnRadius_ = pset.getParameter<double>("hcalIsolInnR");
-  hcalHitEtLow_     = pset.getParameter<double>("minHcalHitEtCut");
+    minPhoEtCut_ = pset.getParameter<double>("minPhoEtCut");
+    convTrackMinPtCut_ = pset.getParameter<double>("convTrackMinPtCut");
+    likelihoodCut_ = pset.getParameter<double>("likelihoodCut");
 
-  numOfTracksInCone_ = pset.getParameter<int>("maxNumOfTracksInCone");
-  trkPtSumCut_  = pset.getParameter<double>("trkPtSumCut");
-  ecalEtSumCut_ = pset.getParameter<double>("ecalEtSumCut");
-  hcalEtSumCut_ = pset.getParameter<double>("hcalEtSumCut");
-  dCotCutOn_ = pset.getParameter<bool>("dCotCutOn");
-  dCotCutValue_ = pset.getParameter<double>("dCotCutValue");
-  dCotHardCutValue_ = pset.getParameter<double>("dCotHardCutValue");
+    trkIsolExtRadius_ = pset.getParameter<double>("trkIsolExtR");
+    trkIsolInnRadius_ = pset.getParameter<double>("trkIsolInnR");
+    trkPtLow_     = pset.getParameter<double>("minTrackPtCut");
+    lip_       = pset.getParameter<double>("lipCut");
+    ecalIsolRadius_ = pset.getParameter<double>("ecalIsolR");
+    bcEtLow_     = pset.getParameter<double>("minBcEtCut");
+    hcalIsolExtRadius_ = pset.getParameter<double>("hcalIsolExtR");
+    hcalIsolInnRadius_ = pset.getParameter<double>("hcalIsolInnR");
+    hcalHitEtLow_     = pset.getParameter<double>("minHcalHitEtCut");
 
-  offline_pvToken_ = consumes<reco::VertexCollection>(
-      pset.getUntrackedParameter<edm::InputTag>("offlinePV",
-                                           edm::InputTag("offlinePrimaryVertices")));
-  g4_simTk_Token_  = consumes<edm::SimTrackContainer>(edm::InputTag("g4SimHits"));
-  g4_simVtx_Token_ = consumes<edm::SimVertexContainer>(edm::InputTag("g4SimHits"));
-  famos_simTk_Token_  = consumes<edm::SimTrackContainer>(
-      edm::InputTag("famosSimHits"));
-  famos_simVtx_Token_ = consumes<edm::SimVertexContainer>(
-      edm::InputTag("famosSimHits"));
-  hepMC_Token_ = consumes<edm::HepMCProduct>(edm::InputTag("generator"));
-  genjets_Token_ = consumes<reco::GenJetCollection>(
-      edm::InputTag("iterativeCone5GenJets"));
-}
+    numOfTracksInCone_ = pset.getParameter<int>("maxNumOfTracksInCone");
+    trkPtSumCut_  = pset.getParameter<double>("trkPtSumCut");
+    ecalEtSumCut_ = pset.getParameter<double>("ecalEtSumCut");
+    hcalEtSumCut_ = pset.getParameter<double>("hcalEtSumCut");
+    dCotCutOn_ = pset.getParameter<bool>("dCotCutOn");
+    dCotCutValue_ = pset.getParameter<double>("dCotCutValue");
+    dCotHardCutValue_ = pset.getParameter<double>("dCotHardCutValue");
+
+  }
 
 
 
@@ -1515,7 +1498,7 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
   esup.get<CaloGeometryRecord>().get(theCaloGeom_);
 
   edm::Handle<reco::VertexCollection> vtxH;
-  e.getByToken(offline_pvToken_, vtxH);
+  e.getByToken(vertexProducer_, vtxH);
   h_nRecoVtx_ ->Fill (float(vtxH->size()));
 
   // Transform Track into TransientTrack (needed by the Vertex fitter)
@@ -1524,15 +1507,17 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 
 
   ///// Get the recontructed  photons
+  bool validPhotonCollection = true;
+  reco::PhotonCollection photonCollection;
   Handle<reco::PhotonCollection> photonHandle;
-  e.getByToken(photonCollectionToken_, photonHandle);
-  const reco::PhotonCollection photonCollection = *(photonHandle.product());
+  e.getByToken(photonCollectionProducer_, photonHandle);
   if (!photonHandle.isValid()) {
     edm::LogError("PhotonProducer")
         << "Error! Can't get the Photon collection "
         << std::endl;
-    return;
+    validPhotonCollection = false;
   }
+  if (  validPhotonCollection ) photonCollection = *(photonHandle.product());
 
   Handle< edm::View<reco::Track> > outInTrkHandle;
   Handle< edm::View<reco::Track> > inOutTrkHandle;
@@ -1548,15 +1533,15 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
     // Loop over Out In Tracks
     int iTrk=0;
     int nHits=0;
-    for( View<reco::Track>::const_iterator    iTk =  (*outInTrkHandle).begin(); iTk !=  (*outInTrkHandle).end(); iTk++) {
+    for( View<reco::Track>::const_iterator    iTk = outInTrkHandle->begin(); iTk !=  outInTrkHandle->end(); iTk++) {
       //    std::cout  << " Barrel  Out In Track charge " << iTk->charge() << " Num of RecHits " << iTk->recHitsSize() << " inner momentum " << sqrt( iTk->innerMomentum().Mag2() ) << "\n";
       // std::cout  << " Barrel Out In Track Extra inner momentum  " << sqrt(iTk->extra()->innerMomentum().Mag2()) <<  " inner position R " <<  sqrt( iTk->innerPosition().Perp2() ) << "\n";
       h_OIinnermostHitR_ ->Fill ( sqrt( iTk->innerPosition().Perp2() ) );
       for (  trackingRecHit_iterator itHits=iTk->extra()->recHitsBegin();  itHits!=iTk->extra()->recHitsEnd(); ++itHits ) {
-	if ( (*itHits)->isValid() ) {
-	  nHits++;
-	  //	cout <<nHits <<") RecHit in GP " <<  trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition()) << " R "<< trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition()).perp() << " Z " << trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition()).z() << "\n";
-	}
+		if ( (*itHits)->isValid() ) {
+		    nHits++;
+		    //	cout <<nHits <<") RecHit in GP " <<  trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition()) << " R "<< trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition()).perp() << " Z " << trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition()).z() << "\n";
+		}
 
 
       }
@@ -1568,21 +1553,18 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 
     // Loop over In Out Tracks Barrel
     iTrk=0;
-    for( View<reco::Track>::const_iterator    iTk =  (*inOutTrkHandle).begin(); iTk !=  (*inOutTrkHandle).end(); iTk++) {
+    for( View<reco::Track>::const_iterator    iTk =  inOutTrkHandle->begin(); iTk !=  inOutTrkHandle->end(); iTk++) {
       //std::cout  << " Barrel In Out Track charge " << iTk->charge() << " Num of RecHits " << iTk->recHitsSize() << " inner momentum " << sqrt( iTk->innerMomentum().Mag2())  << "\n";
       // std::cout   << " Barrel In Out  Track Extra inner momentum  " << sqrt(iTk->extra()->innerMomentum().Mag2()) << "\n";
       h_IOinnermostHitR_ ->Fill ( sqrt( iTk->innerPosition().Perp2() ) );
       nHits=0;
       for (  trackingRecHit_iterator itHits=iTk->extra()->recHitsBegin();  itHits!=iTk->extra()->recHitsEnd(); ++itHits ) {
-	if ( (*itHits)->isValid() ) {
-	  nHits++;
+    	if ( (*itHits)->isValid() ) {
+    	  nHits++;
 	  //cout <<nHits <<") RecHit in GP " << trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition())  << " R "<< trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition()).perp() << " Z " << trackerGeom->idToDet((*itHits)->geographicalId())->surface().toGlobal((*itHits)->localPosition()).z() << "\n";
 
-	}
+      	}
       }
-
-
-
       iTrk++;
     }
 
@@ -1618,7 +1600,7 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 
   // get generated jets
   Handle<reco::GenJetCollection> GenJetsHandle ;
-  e.getByToken(genjets_Token_, GenJetsHandle);
+  e.getByToken(genJets_, GenJetsHandle);
   reco::GenJetCollection genJetCollection = *(GenJetsHandle.product());
 
 
@@ -1629,8 +1611,8 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
   edm::Handle<TrackingParticleCollection> ElectronTPHandle;
   if ( useTP) {
     if ( ! fastSim_) {
-      e.getByToken(token_tp_, ElectronTPHandle);
-      trackingParticles = *(ElectronTPHandle.product());
+    e.getByToken(trackingParticle_,ElectronTPHandle);
+    trackingParticles = *(ElectronTPHandle.product());
     }
   }
 
@@ -2127,7 +2109,7 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 	e.getByToken(endcapEcalHits_, ecalRecHitHandle);
 	if (!ecalRecHitHandle.isValid()) {
 	  Labels l;
-          labelsForToken(barrelEcalHits_, l);
+          labelsForToken(endcapEcalHits_, l);
 	  edm::LogError("PhotonProducer")
               << "Error! Can't get the product "
               << l.module;
@@ -3343,7 +3325,7 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
       e.getByToken(endcapEcalHits_, ecalRecHitHandle);
       if (!ecalRecHitHandle.isValid()) {
         Labels l;
-        labelsForToken(barrelEcalHits_, l);
+        labelsForToken(endcapEcalHits_, l);
 	edm::LogError("PhotonProducer")
             << "Error! Can't get the product "
             << l.module;
