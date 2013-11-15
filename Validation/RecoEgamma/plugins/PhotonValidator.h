@@ -113,7 +113,6 @@ class PhotonValidator : public edm::EDAnalyzer
   edm::EDGetTokenT<edm::SimTrackContainer>  famos_simTk_Token_;
   edm::EDGetTokenT<edm::SimVertexContainer> famos_simVtx_Token_;
   edm::EDGetTokenT<edm::HepMCProduct>  hepMC_Token_;
-  edm::EDGetTokenT<reco::GenJetCollection> genjets_Token_;
 
   PhotonMCTruthFinder*  thePhotonMCTruthFinder_;
   TrackAssociatorBase * theTrackAssociator_;

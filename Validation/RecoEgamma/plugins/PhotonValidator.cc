@@ -101,10 +101,22 @@ PhotonValidator::PhotonValidator( const edm::ParameterSet& pset )
     genJets_ = consumes<reco::GenJetCollection>(pset.getParameter<edm::InputTag>("genJets"));
 
     trackingParticle_   = consumes<TrackingParticleCollection>(pset.getParameter<edm::InputTag>("trackingParticle"));
+    g4_simTk_Token_  = consumes<edm::SimTrackContainer>(edm::InputTag("g4SimHits"));
+    g4_simVtx_Token_ = consumes<edm::SimVertexContainer>(edm::InputTag("g4SimHits"));
+    famos_simTk_Token_  = consumes<edm::SimTrackContainer>(
+      edm::InputTag("famosSimHits"));
+    famos_simVtx_Token_ = consumes<edm::SimVertexContainer>(
+        edm::InputTag("famosSimHits"));
+    hepMC_Token_ = consumes<edm::HepMCProduct>(edm::InputTag("generator"));
+
     conversionOITrackProducer_ = pset.getParameter<edm::InputTag>("conversionOITrackProducer");
     conversionIOTrackProducer_ = pset.getParameter<edm::InputTag>("conversionIOTrackProducer");
 
 
+    conversionOITrackPr_Token_ = consumes<edm::View<reco::Track> >(
+      edm::InputTag(conversionOITrackProducer_));
+    conversionIOTrackPr_Token_ = consumes<edm::View<reco::Track> >(
+        edm::InputTag(conversionIOTrackProducer_));
     minPhoEtCut_ = pset.getParameter<double>("minPhoEtCut");
     convTrackMinPtCut_ = pset.getParameter<double>("convTrackMinPtCut");
     likelihoodCut_ = pset.getParameter<double>("likelihoodCut");
@@ -1584,7 +1596,6 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
   } else {
     e.getByToken(famos_simTk_Token_, SimTk);
     e.getByToken(famos_simVtx_Token_, SimVtx);
-
   }
 
 
