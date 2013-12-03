@@ -35,6 +35,7 @@
 
 #include "RecoEgamma/EgammaPhotonProducers/interface/GEDPhotonProducer.h"
 #include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaTowerIsolation.h"
+
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterFunctionBaseClass.h" 
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterFunctionFactory.h" 
 #include "RecoEcal/EgammaCoreTools/plugins/EcalClusterCrackCorrection.h"
@@ -60,12 +61,11 @@ GEDPhotonProducer::GEDPhotonProducer(const edm::ParameterSet& config) :
 
     photonCoreProducerT_   = 
       consumes<reco::PhotonCoreCollection>(photonProducer_);
-    pfEgammaCandidates_      = 
-      consumes<reco::PFCandidateCollection>(conf_.getParameter<edm::InputTag>("pfEgammaCandidates"));
-
 
   }
 
+  pfEgammaCandidates_      = 
+    consumes<reco::PFCandidateCollection>(conf_.getParameter<edm::InputTag>("pfEgammaCandidates"));
   barrelEcalHits_   = 
     consumes<EcalRecHitCollection>(conf_.getParameter<edm::InputTag>("barrelEcalHits"));
   endcapEcalHits_   = 
@@ -178,6 +178,7 @@ void  GEDPhotonProducer::beginRun (edm::Run const& r, edm::EventSetup const & th
 
   if ( reconstructionStep_ == "final" ) { 
 
+    thePFBlockBasedIsolation_ = new PfBlockBasedIsolation();
     thePFBasedIsolationCalculator_ = new PFPhotonIsolationCalculator();
     edm::ParameterSet pfIsolationCalculatorSet = conf_.getParameter<edm::ParameterSet>("PFIsolationCalculatorSet"); 
     thePFBasedIsolationCalculator_->setup(pfIsolationCalculatorSet);
@@ -207,6 +208,7 @@ void  GEDPhotonProducer::endRun (edm::Run const& r, edm::EventSetup const & theE
 
 if ( reconstructionStep_ == "final" ) { 
   delete thePFBasedIsolationCalculator_;
+  delete thePFBlockBasedIsolation_;
  } else {
   delete thePhotonIsolationCalculator_;
   delete thePhotonMIPHaloTagger_;
@@ -223,7 +225,9 @@ void GEDPhotonProducer::produce(edm::Event& theEvent, const edm::EventSetup& the
  
   reco::PhotonCollection outputPhotonCollection;
   std::auto_ptr< reco::PhotonCollection > outputPhotonCollection_p(new reco::PhotonCollection);
-
+  edm::ValueMap<reco::PhotonRef> pfEGCandToPhotonMap;
+  std::vector<std::vector<std::pair<const reco::PFCandidateRef, bool>>> pfCandIsoPairVec;
+  edm::ValueMap<std::vector<std::pair<const reco::PFCandidateRef, bool>>> phoToPFCandIso;
 
   // Get the PhotonCore collection
   bool validPhotonCoreHandle=false;
@@ -280,7 +284,15 @@ void GEDPhotonProducer::produce(edm::Event& theEvent, const edm::EventSetup& the
 
 
   Handle<reco::PFCandidateCollection> pfEGCandidateHandle;
+  // Get the  PF refined cluster  collection
+  theEvent.getByToken(pfEgammaCandidates_,pfEGCandidateHandle);
+  if (!pfEGCandidateHandle.isValid()) {
+    edm::LogError("GEDPhotonProducer") 
+      << "Error! Can't get the pfEgammaCandidates";
+  }
+  
   Handle<reco::PFCandidateCollection> pfCandidateHandle;
+
   if ( reconstructionStep_ == "final" ) {  
     // Get the  PF candidates collection
     theEvent.getByToken(pfCandidates_,pfCandidateHandle);
@@ -289,18 +301,13 @@ void GEDPhotonProducer::produce(edm::Event& theEvent, const edm::EventSetup& the
 	<< "Error! Can't get the pfCandidates";
     }
 
-  } else {
-
-    // Get the  PF refined cluster  collection
-    theEvent.getByToken(pfEgammaCandidates_,pfEGCandidateHandle);
-    if (!pfEGCandidateHandle.isValid()) {
-      edm::LogError("GEDPhotonProducer") 
-	<< "Error! Can't get the pfEgammaCandidates";
+    edm::Handle<edm::ValueMap<reco::PhotonRef> > pfEGCandToPhotonMapHandle;
+    theEvent.getByLabel("gedPhotonsTmp",valueMapPFCandPhoton_,pfEGCandToPhotonMapHandle);
+    if ( ! pfEGCandToPhotonMapHandle.isValid()) {
+      edm::LogInfo("GEDPhotonProducer") << "Error! Can't get the product: valueMapPhotons " << std::endl;
     }
-
-    
-  }
-
+    pfEGCandToPhotonMap = *(pfEGCandToPhotonMapHandle.product());
+  } 
 
 
 
@@ -360,60 +367,106 @@ void GEDPhotonProducer::produce(edm::Event& theEvent, const edm::EventSetup& the
 			 outputPhotonCollection,
 			 iSC);
 
-  if ( validPhotonHandle) 
+  iSC=0;
+  if ( validPhotonHandle &&  reconstructionStep_ == "final" )
     fillPhotonCollection(theEvent,
 			 theEventSetup,
 			 photonHandle,
 			 pfCandidateHandle,
-			 //vtx,
+			 pfEGCandidateHandle,
+			 pfEGCandToPhotonMap,
 			 vertexHandle,
+			 pfCandIsoPairVec,
 			 outputPhotonCollection,
 			 iSC);
 
+   if ( validPhotonHandle &&  reconstructionStep_ == "final" ) std::cout << " GEDPhotonProducer::produce soon after calling fillPhotonCollection pfCandIsoPairVec size " << pfCandIsoPairVec.size() << std::endl;
 
   // put the product in the event
   edm::LogInfo("GEDPhotonProducer") << " Put in the event " << iSC << " Photon Candidates \n";
   outputPhotonCollection_p->assign(outputPhotonCollection.begin(),outputPhotonCollection.end());
   const edm::OrphanHandle<reco::PhotonCollection> photonOrphHandle = theEvent.put(outputPhotonCollection_p, photonCollection_);
 
+
   if ( reconstructionStep_ != "final" ) { 
-    std::auto_ptr<edm::ValueMap<reco::PhotonRef> >  pfCandToPhotonMap_p(new edm::ValueMap<reco::PhotonRef>());
-    edm::ValueMap<reco::PhotonRef>::Filler filler(*pfCandToPhotonMap_p);
+    //// Define the value map which associate to each  Egamma-unbiassaed candidate (key-ref) the corresponding PhotonRef 
+    std::auto_ptr<edm::ValueMap<reco::PhotonRef> >  pfEGCandToPhotonMap_p(new edm::ValueMap<reco::PhotonRef>());
+    edm::ValueMap<reco::PhotonRef>::Filler filler(*pfEGCandToPhotonMap_p);
     unsigned nObj = pfEGCandidateHandle->size();
     std::vector<reco::PhotonRef> values(nObj);
-    unsigned pfGamma=0; 
+    //// Fill the value map which associate to each Photon (key) the corresponding Egamma-unbiassaed candidate (value-ref) 
     for(unsigned int lCand=0; lCand < nObj; lCand++) {
       reco::PFCandidateRef pfCandRef (reco::PFCandidateRef(pfEGCandidateHandle,lCand));
-      pfGamma++;
       reco::SuperClusterRef pfScRef = pfCandRef -> superClusterRef(); 
+      
       for(unsigned int lSC=0; lSC < photonOrphHandle->size(); lSC++) {
 	reco::PhotonRef photonRef(reco::PhotonRef(photonOrphHandle, lSC));
 	reco::SuperClusterRef scRef=photonRef->superCluster();
 	if ( pfScRef != scRef ) continue;
-	values [lCand] = photonRef; 
+	values[lCand] = photonRef; 
       }
     }
     
     
     filler.insert(pfEGCandidateHandle,values.begin(),values.end());
     filler.fill(); 
-    theEvent.put(pfCandToPhotonMap_p,valueMapPFCandPhoton_);
+    theEvent.put(pfEGCandToPhotonMap_p,valueMapPFCandPhoton_);
+
+
+  } else { // Final pass 
+
+    std::auto_ptr<edm::ValueMap<std::vector<std::pair<const reco::PFCandidateRef, bool>>> >  
+      phoToPFCandIsoMap_p(new edm::ValueMap<std::vector<std::pair<const reco::PFCandidateRef, bool>>>());
+    edm::ValueMap<std::vector<std::pair<const reco::PFCandidateRef, bool>>>::Filler 
+      filler2(*phoToPFCandIsoMap_p);
+    unsigned lObj =  photonOrphHandle->size();
+    // std::vector<std::pair<const reco::PFCandidateRef, bool>> myPairs(lObj);
+    
+    //// fill the isolation value map
+    std::cout << " GEDPhotonProducer::produce  pfCandIsoPairVec size " << pfCandIsoPairVec.size() << std::endl;
+    for(unsigned int lCand=0; lCand < lObj; lCand++) {
+     reco::PhotonRef photonRef (reco::PhotonRef( photonOrphHandle,lCand));
+     for ( unsigned int n=0; n <pfCandIsoPairVec.size() ; n++) {
+
+       std::cout << " GEDPhotonProducer::produce pfCandIsoPairVec[n].size " << pfCandIsoPairVec[n].size() << std::endl;
+       for ( unsigned int m=0; m <pfCandIsoPairVec[n].size() ; m++) {
+	 std::cout << " look at the vector of PFCandidates " <<  (pfCandIsoPairVec[n][m].first) ->particleId() << " flagged " << pfCandIsoPairVec[n][m].second  << std::endl;               
+
+       }
+       
+       
+     }
+     
+    }
+    
+    
+
+    //
+    filler2.insert(photonOrphHandle,pfCandIsoPairVec.begin(),pfCandIsoPairVec.end());
+    filler2.fill(); 
+    theEvent.put(phoToPFCandIsoMap_p,valueMapPhoPFCandIso_);
+
+
   }
+    
+    
+    
+
 
 
 }
 
 void GEDPhotonProducer::fillPhotonCollection(edm::Event& evt,
-					  edm::EventSetup const & es,
-					  const edm::Handle<reco::PhotonCoreCollection> & photonCoreHandle,
-					  const CaloTopology* topology,
-					  const EcalRecHitCollection* ecalBarrelHits,
-					  const EcalRecHitCollection* ecalEndcapHits,
-					  const edm::Handle<CaloTowerCollection> & hcalTowersHandle, 
-					  // math::XYZPoint & vtx,
-                                          reco::VertexCollection & vertexCollection,
+					     edm::EventSetup const & es,
+					     const edm::Handle<reco::PhotonCoreCollection> & photonCoreHandle,
+					     const CaloTopology* topology,
+					     const EcalRecHitCollection* ecalBarrelHits,
+					     const EcalRecHitCollection* ecalEndcapHits,
+					     const edm::Handle<CaloTowerCollection> & hcalTowersHandle, 
+					     // math::XYZPoint & vtx,
+					     reco::VertexCollection & vertexCollection,
 					     reco::PhotonCollection & outputPhotonCollection, int& iSC) {
-
+  
   
   const CaloGeometry* geometry = theCaloGeom_.product();
   const EcalRecHitCollection* hits = 0 ;
@@ -582,19 +635,21 @@ void GEDPhotonProducer::fillPhotonCollection(edm::Event& evt,
 					     edm::EventSetup const & es,
 					     const edm::Handle<reco::PhotonCollection> & photonHandle,
 					     const edm::Handle<reco::PFCandidateCollection> pfCandidateHandle,
-					     // math::XYZPoint & vtx,
+					     const edm::Handle<reco::PFCandidateCollection> pfEGCandidateHandle,
+					     edm::ValueMap<reco::PhotonRef> pfEGCandToPhotonMap,
 					     edm::Handle< reco::VertexCollection >  & vertexHandle,
+					     std::vector<std::vector<std::pair<const reco::PFCandidateRef, bool>>>& pfCandIsoPairVec,
 					     reco::PhotonCollection & outputPhotonCollection, int& iSC) {
 
   
-  //  const CaloGeometry* geometry = theCaloGeom_.product();
-  //  const EcalRecHitCollection* hits = 0 ;
+ 
   std::vector<double> preselCutValues;
 
+  std::cout << " fillcollection photonHandle size " << photonHandle->size() << std::endl;
   for(unsigned int lSC=0; lSC < photonHandle->size(); lSC++) {
     reco::PhotonRef phoRef(reco::PhotonRef(photonHandle, lSC));
     reco::SuperClusterRef scRef=phoRef->superCluster();
-   int subdet = scRef->seed()->hitsAndFractions()[0].first.subdetId();
+    int subdet = scRef->seed()->hitsAndFractions()[0].first.subdetId();
     if (subdet==EcalBarrel) { 
       preselCutValues = preselCutValuesBarrel_;
     } else if  (subdet==EcalEndcap)  { 
@@ -603,15 +658,41 @@ void GEDPhotonProducer::fillPhotonCollection(edm::Event& evt,
       edm::LogWarning("")<<"GEDPhotonProducer: do not know if it is a barrel or endcap SuperCluster"; 
     }
 
-    iSC++;
+
   
     // SC energy preselection
     if (scRef->energy()/cosh(scRef->eta()) <= preselCutValues[0] ) continue;
-
     reco::Photon newCandidate(*phoRef);
 
+    // loop over the unbiased candidates to retrieve the ref to the unbiased candidate corresponding to this photon
+    unsigned nObj = pfEGCandidateHandle->size();
+    reco::PFCandidateRef pfEGCandRef;
+
+    std::vector<std::pair<const reco::PFCandidateRef, bool>> pfCandIsoPair;
+    for(unsigned int lCand=0; lCand < nObj; lCand++) {
+      pfEGCandRef=reco::PFCandidateRef(pfEGCandidateHandle,lCand);
+      reco::PhotonRef myPho= (pfEGCandToPhotonMap)[pfEGCandRef];
+
+      if ( myPho.isNonnull() ) {
+	std::cout << " PF SC " << pfEGCandRef->superClusterRef()->energy() << " Photon SC " << myPho->superCluster()->energy() << std::endl;
+	if (myPho != phoRef) continue;
+	std::cout << " This is my egammaunbiased guy energy " <<  pfEGCandRef->superClusterRef()->energy() << std::endl;
+	pfCandIsoPair=thePFBlockBasedIsolation_->calculate (newCandidate.p4(),  pfEGCandRef, pfCandidateHandle);
+	/////// debug
+	for ( std::vector<std::pair<const reco::PFCandidateRef, bool>>::const_iterator iPair=pfCandIsoPair.begin(); iPair<pfCandIsoPair.end(); iPair++) {
+	  std::cout << " GEDPhotonProducers checking the pfCand bool pair " << (iPair->first)->particleId() << " " <<  iPair->second << std::endl; 
+	}
+	
+
+      }
+    
+    }
+    
+    pfCandIsoPairVec.push_back(pfCandIsoPair); 
+    iSC++;    
+
+
   // Calculate the PF isolation and ID - for the time being there is no calculation. Only the setting
- 
     reco::Photon::PflowIsolationVariables pfIso;
     reco::Photon::PflowIDVariables pfID;
     thePFBasedIsolationCalculator_->calculate (&newCandidate, pfCandidateHandle, vertexHandle, evt, es, pfIso );
@@ -647,4 +728,7 @@ void GEDPhotonProducer::fillPhotonCollection(edm::Event& evt,
       
         
   }
+
+  std::cout << " GEDPhotonProducer fillCollections pfCandIsoPairVec " << pfCandIsoPairVec.size() << std::endl;
+
 }
