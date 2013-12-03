@@ -24,6 +24,7 @@
 #include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
 #include "RecoEcal/EgammaCoreTools/interface/PositionCalc.h"
 #include "DataFormats/EgammaReco/interface/ElectronSeedFwd.h"
+#include "RecoEgamma/EgammaIsolationAlgos/interface/PfBlockBasedIsolation.h"
 #include "RecoCaloTools/MetaCollections/interface/CaloRecHitMetaCollections.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "RecoEgamma/PhotonIdentification/interface/PFPhotonIsolationCalculator.h"
@@ -67,10 +68,12 @@ class GEDPhotonProducer : public edm::EDProducer {
 
  void fillPhotonCollection(edm::Event& evt,
 			    edm::EventSetup const & es,
-                            const edm::Handle<reco::PhotonCollection> & photonHandle,
+			   const edm::Handle<reco::PhotonCollection> & photonHandle,
 		   	   const edm::Handle<reco::PFCandidateCollection> pfCandidateHandle,
-			    //math::XYZPoint & vtx,
+			   const edm::Handle<reco::PFCandidateCollection> pfEGCandidateHandle,
+			   edm::ValueMap<reco::PhotonRef>  pfEGCandToPhotonMap,
 			   edm::Handle< reco::VertexCollection >&  pvVertices,
+			   std::vector<std::vector<std::pair<const reco::PFCandidateRef, bool>>>& pfCandIsoPair,
 			   reco::PhotonCollection & outputCollection,
 			   int& iSC);
 
@@ -87,10 +90,14 @@ class GEDPhotonProducer : public edm::EDProducer {
   edm::EDGetTokenT<CaloTowerCollection> hcalTowers_;
   edm::EDGetTokenT<reco::VertexCollection> vertexProducer_;
 
+
   std::string conversionProducer_;
   std::string conversionCollection_;
   std::string valueMapPFCandPhoton_;
+  std::string valueMapPhoPFCandIso_;
 
+
+  PfBlockBasedIsolation* thePFBlockBasedIsolation_;
   PFPhotonIsolationCalculator* thePFBasedIsolationCalculator_;
   PhotonIsolationCalculator* thePhotonIsolationCalculator_;
 
