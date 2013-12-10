@@ -153,7 +153,6 @@ void ParticleBasedIsoProducer::produce(edm::Event& theEvent, const edm::EventSet
 
     std::vector<std::pair<reco::PFCandidateRef, bool>> pfCandIsoPairPho;
     for(unsigned int lCand=0; lCand < nObj; lCand++) {
-      pfCandIsoPairPho.clear();
       pfEGCandRef=reco::PFCandidateRef(pfEGCandidateHandle,lCand);
       reco::PhotonRef myPho= (pfEGCandToPhotonMap)[pfEGCandRef];
       
@@ -193,7 +192,6 @@ void ParticleBasedIsoProducer::produce(edm::Event& theEvent, const edm::EventSet
     for(unsigned int lCand=0; lCand < nObj; lCand++) {
       pfEGCandRef=reco::PFCandidateRef(pfEGCandidateHandle,lCand);
       reco::GsfElectronRef myEle= (pfEGCandToElectronMap)[pfEGCandRef];
-      pfCandIsoPairEle.clear();
       
       if ( myEle.isNonnull() ) {
 	//	std::cout << "ParticleBasedIsoProducer Electorns PF SC " << pfEGCandRef->superClusterRef()->energy() << " Electron SC " << myEle->superCluster()->energy() << std::endl;
