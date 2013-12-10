@@ -40,23 +40,21 @@ PfBlockBasedIsolation::~PfBlockBasedIsolation()
 
 
 
- std::vector<std::pair<reco::PFCandidateRef, bool>>   PfBlockBasedIsolation::calculate(math::XYZTLorentzVectorD p4, const reco::PFCandidateRef pfEGCand, const edm::Handle<reco::PFCandidateCollection> pfCandidateHandle) {
+  std::vector<std::pair<reco::PFCandidateRef, bool>>  PfBlockBasedIsolation::calculate(math::XYZTLorentzVectorD p4, const reco::PFCandidateRef pfEGCand, const edm::Handle<reco::PFCandidateCollection> pfCandidateHandle) {
 
   std::vector<std::pair<reco::PFCandidateRef, bool>> myPairVec;
 
-  math::XYZVector candidateMomentum(p4.px(),p4.py(),p4.py());
+  math::XYZVector candidateMomentum(p4.px(),p4.py(),p4.pz());
   math::XYZVector candidateDirection=candidateMomentum.Unit();
-  //  std::cout << " PfBlockBasedIsolation::calculate photon momentum direction " << candidateDirection << " pfEGCand SC energy " <<   pfEGCand->superClusterRef()->energy() << std::endl; 
+  //  std::cout << " PfBlockBasedIsolation::calculate photon momentum direction " << candidateDirection << " eta " << candidateDirection.Eta() << " phi " << candidateDirection.Phi() << " pfEGCand SC energy " <<   pfEGCand->superClusterRef()->energy() << std::endl; 
   const reco::PFCandidate::ElementsInBlocks& theElementsInpfEGcand = (*pfEGCand).elementsInBlocks();
   reco::PFCandidate::ElementsInBlocks::const_iterator ieg = theElementsInpfEGcand.begin();
   const reco::PFBlockRef egblock = ieg->first;
 
 
-
-  std::pair<reco::PFCandidateRef, bool> aPair;
   unsigned nObj = pfCandidateHandle->size();
   for(unsigned int lCand=0; lCand < nObj; lCand++) {
-
+    std::pair<reco::PFCandidateRef, bool> aPair;
     reco::PFCandidateRef pfCandRef(reco::PFCandidateRef(pfCandidateHandle,lCand));
 
     float dR = deltaR(candidateDirection.Eta(), candidateDirection.Phi(),  pfCandRef->eta(),   pfCandRef->phi());   
@@ -85,9 +83,11 @@ PfBlockBasedIsolation::~PfBlockBasedIsolation()
       }
     }
     myPairVec.push_back(aPair);    
+    //    std::cout << " PfBlockBasedIsolation myPairVec size " << myPairVec.size() << std::endl;
     // for ( std::vector<std::pair<reco::PFCandidateRef, bool>>::const_iterator iPair=myPairVec.begin(); iPair<myPairVec.end(); iPair++) {
-    // std::cout << " Pair " << (iPair->first)->particleId() << " " <<  iPair->second << std::endl; 
-    // }
+    // float dR = deltaR(candidateDirection.Eta(), candidateDirection.Phi(),  (iPair->first)->eta(),   (iPair->first)->phi());   
+    // std::cout << " Pair " << (iPair->first)->particleId() << " " <<  iPair->second << " dR local " << dR << " pt " << (iPair->first)->pt() <<  " eta " << (iPair->first)->eta() << " phi " << (iPair->first)->phi() << std::endl; 
+    //}
 
   }
   
