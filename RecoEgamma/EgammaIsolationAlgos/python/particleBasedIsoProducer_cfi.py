@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-
+from RecoEgamma.EgammaIsolationAlgos.pfBlockBasedIsolation_cfi import *
 
 #
 # particle based isolatio 
@@ -14,7 +14,8 @@ particleBasedIsolation = cms.EDProducer("ParticleBasedIsoProducer",
     valueMapPhoToEG = cms.string("valMapPFEgammaCandToPhoton"),             
     valueMapPhoPFblockIso = cms.string("valMapPhoToPFisolation"),
     valueMapEleToEG = cms.string(""),
-    valueMapElePFblockIso = cms.string("valMapEleToPFisolation")                                  
+    valueMapElePFblockIso = cms.string("valMapEleToPFisolation"),
+    pfBlockBasedIsolationSetUp=cms.PSet(pfBlockBasedIsolation)                                 
 )
 
 

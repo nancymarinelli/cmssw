@@ -2,7 +2,7 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
-
+#include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
 
@@ -39,8 +39,9 @@ ParticleBasedIsoProducer::ParticleBasedIsoProducer(const edm::ParameterSet& conf
   valueMapPFCandEle_    = conf_.getParameter<std::string>("valueMapEleToEG");
   valueMapElePFCandIso_ = conf_.getParameter<std::string>("valueMapElePFblockIso");
 
-  produces< edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool> > > > (valueMapPhoPFCandIso_); 
-  produces< edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool> > > > (valueMapElePFCandIso_); 
+
+  produces< edm::ValueMap<std::vector<reco::PFCandidateRef> > >  (valueMapPhoPFCandIso_); 
+  produces< edm::ValueMap<std::vector<reco::PFCandidateRef> > > (valueMapElePFCandIso_); 
 
 }
 
@@ -53,6 +54,8 @@ ParticleBasedIsoProducer::~ParticleBasedIsoProducer() {
 void ParticleBasedIsoProducer::beginRun(const edm::Run & run, const edm::EventSetup& c) {
 
     thePFBlockBasedIsolation_ = new PfBlockBasedIsolation();
+    edm::ParameterSet pfBlockBasedIsolationSetUp = conf_.getParameter<edm::ParameterSet>("pfBlockBasedIsolationSetUp"); 
+    thePFBlockBasedIsolation_ ->setup(pfBlockBasedIsolationSetUp);
 
 }
 
@@ -139,7 +142,7 @@ void ParticleBasedIsoProducer::produce(edm::Event& theEvent, const edm::EventSet
 
 
 
-  std::vector<std::vector<std::pair<reco::PFCandidateRef, bool>>> pfCandIsoPairVecPho;
+  std::vector<std::vector<reco::PFCandidateRef>> pfCandIsoPairVecPho;
 
   ///// Isolation for photons 
   //  std::cout << " ParticleBasedIsoProducer  photonHandle size " << photonHandle->size() << std::endl;
@@ -151,21 +154,21 @@ void ParticleBasedIsoProducer::produce(edm::Event& theEvent, const edm::EventSet
     unsigned nObj = pfEGCandidateHandle->size();
     reco::PFCandidateRef pfEGCandRef;
 
-    std::vector<std::pair<reco::PFCandidateRef, bool>> pfCandIsoPairPho;
+    std::vector<reco::PFCandidateRef> pfCandIsoPairPho;
     for(unsigned int lCand=0; lCand < nObj; lCand++) {
       pfEGCandRef=reco::PFCandidateRef(pfEGCandidateHandle,lCand);
       reco::PhotonRef myPho= (pfEGCandToPhotonMap)[pfEGCandRef];
       
       if ( myPho.isNonnull() ) {
-	//	std::cout << "ParticleBasedIsoProducer photons PF SC " << pfEGCandRef->superClusterRef()->energy() << " Photon SC " << myPho->superCluster()->energy() << std::endl;
+	//std::cout << "ParticleBasedIsoProducer photons PF SC " << pfEGCandRef->superClusterRef()->energy() << " Photon SC " << myPho->superCluster()->energy() << std::endl;
 	if (myPho != phoRef) continue;
 	//	std::cout << " ParticleBasedIsoProducer photons This is my egammaunbiased guy energy " <<  pfEGCandRef->superClusterRef()->energy() << std::endl;
 	pfCandIsoPairPho=thePFBlockBasedIsolation_->calculate (myPho->p4(),  pfEGCandRef, pfCandidateHandle);
-   
+	
 	/////// debug
-	//	for ( std::vector<std::pair<reco::PFCandidateRef, bool>>::iterator iPair=pfCandIsoPairPho.begin(); iPair<pfCandIsoPairPho.end(); iPair++) {
-	// float dR= deltaR(myPho->eta(),  myPho->phi(), (iPair->first)->eta(),  (iPair->first)->phi() );
-	// std::cout << " ParticleBasedIsoProducer photons  checking the pfCand bool pair " << (iPair->first)->particleId() << " " <<  iPair->second << " dR " << dR << " pt " <<  (iPair->first)->pt() << std::endl; 
+	//	for ( std::vector<reco::PFCandidateRef>::const_iterator iPair=pfCandIsoPairPho.begin(); iPair<pfCandIsoPairPho.end(); iPair++) {
+	// float dR= deltaR(myPho->eta(),  myPho->phi(), (*iPair)->eta(),  (*iPair)->phi() );
+	// std::cout << " ParticleBasedIsoProducer photons  checking the pfCand bool pair " << (*iPair)->particleId() << " dR " << dR << " pt " <<  (*iPair)->pt() << std::endl; 
 	//	}
 	
 	
@@ -179,16 +182,16 @@ void ParticleBasedIsoProducer::produce(edm::Event& theEvent, const edm::EventSet
 
 
   ////////////isolation for electrons 
-  std::vector<std::vector<std::pair<reco::PFCandidateRef, bool>>> pfCandIsoPairVecEle;
+  std::vector<std::vector<reco::PFCandidateRef>> pfCandIsoPairVecEle;
   //  std::cout << " ParticleBasedIsoProducer  electronHandle size " << electronHandle->size() << std::endl;
   for(unsigned int lSC=0; lSC < electronTmpHandle->size(); lSC++) {
     reco::GsfElectronRef eleRef(reco::GsfElectronRef(electronTmpHandle, lSC));
-
+    
     // loop over the unbiased candidates to retrieve the ref to the unbiased candidate corresponding to this electron
     unsigned nObj = pfEGCandidateHandle->size();
     reco::PFCandidateRef pfEGCandRef;
-
-    std::vector<std::pair<reco::PFCandidateRef, bool>> pfCandIsoPairEle;
+    
+    std::vector<reco::PFCandidateRef> pfCandIsoPairEle;
     for(unsigned int lCand=0; lCand < nObj; lCand++) {
       pfEGCandRef=reco::PFCandidateRef(pfEGCandidateHandle,lCand);
       reco::GsfElectronRef myEle= (pfEGCandToElectronMap)[pfEGCandRef];
@@ -196,17 +199,16 @@ void ParticleBasedIsoProducer::produce(edm::Event& theEvent, const edm::EventSet
       if ( myEle.isNonnull() ) {
 	//	std::cout << "ParticleBasedIsoProducer Electorns PF SC " << pfEGCandRef->superClusterRef()->energy() << " Electron SC " << myEle->superCluster()->energy() << std::endl;
 	if (myEle != eleRef) continue;
-     
+	
 	//math::XYZVector candidateMomentum(myEle->p4().px(),myEle->p4().py(),myEle->p4().pz());
 	//math::XYZVector myDir=candidateMomentum.Unit();
 	//	std::cout << " ParticleBasedIsoProducer  Electrons This is my egammaunbiased guy energy " <<  pfEGCandRef->superClusterRef()->energy()  << std::endl;
 	//  std::cout << " Ele  direction " << myDir << " eta " << myEle->eta() << " phi " << myEle->phi() << std::endl;
 	pfCandIsoPairEle=thePFBlockBasedIsolation_->calculate (myEle->p4(),  pfEGCandRef, pfCandidateHandle);
 	/////// debug
-	//	for ( std::vector<std::pair<reco::PFCandidateRef, bool>>::iterator iPair=pfCandIsoPairEle.begin(); iPair<pfCandIsoPairEle.end(); iPair++) {
-	// float dR= deltaR(myEle->eta(),  myEle->phi(), (iPair->first)->eta(),  (iPair->first)->phi() );
-	// std::cout << " ParticleBasedIsoProducer Electron  checking the pfCand bool pair " << (iPair->first)->particleId() << " " <<  iPair->second << " dR " << dR << " pt " <<  (iPair->first)->pt() << " eta " << (iPair->first)->eta() << " phi " << (iPair->first)->phi() <<  std::endl; 
-
+	//for ( std::vector<reco::PFCandidateRef>::const_iterator iPair=pfCandIsoPairEle.begin(); iPair<pfCandIsoPairEle.end(); iPair++) {
+	// float dR= deltaR(myEle->eta(),  myEle->phi(), (*iPair)->eta(),  (*iPair)->phi() );
+	// std::cout << " ParticleBasedIsoProducer Electron  checking the pfCand bool pair " << (*iPair)->particleId() << " dR " << dR << " pt " <<  (*iPair)->pt() << " eta " << (*iPair)->eta() << " phi " << (*iPair)->phi() <<  std::endl; 
 	//	}
 	
 	
@@ -215,31 +217,29 @@ void ParticleBasedIsoProducer::produce(edm::Event& theEvent, const edm::EventSet
     }
     
     pfCandIsoPairVecEle.push_back(pfCandIsoPairEle); 
-  }
+}
  
 
 
 
 
-  std::auto_ptr<edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool>>> >  
-    phoToPFCandIsoMap_p(new edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool>>>());
-  edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool>>>::Filler 
+  std::auto_ptr<edm::ValueMap<std::vector<reco::PFCandidateRef>> >  
+    phoToPFCandIsoMap_p(new edm::ValueMap<std::vector<reco::PFCandidateRef>>());
+  edm::ValueMap<std::vector<reco::PFCandidateRef>>::Filler 
     fillerPhotons(*phoToPFCandIsoMap_p);
   
   //// fill the isolation value map for photons
-  //  std::cout << " ParticleBasedIsoProducer::produce  pfCandIsoPairVecPho size " << pfCandIsoPairVecPho.size() << std::endl;
   fillerPhotons.insert(photonHandle,pfCandIsoPairVecPho.begin(),pfCandIsoPairVecPho.end());
   fillerPhotons.fill(); 
   theEvent.put(phoToPFCandIsoMap_p,valueMapPhoPFCandIso_);
 
 
-  std::auto_ptr<edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool>>> >  
-    eleToPFCandIsoMap_p(new edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool>>>());
-  edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool>>>::Filler 
+  std::auto_ptr<edm::ValueMap<std::vector<reco::PFCandidateRef>> >  
+    eleToPFCandIsoMap_p(new edm::ValueMap<std::vector<reco::PFCandidateRef>>());
+  edm::ValueMap<std::vector<reco::PFCandidateRef>>::Filler 
     fillerElectrons(*eleToPFCandIsoMap_p);
   
   //// fill the isolation value map for electrons 
-  //  std::cout << " ParticleBasedIsoProducer::produce  pfCandIsoPairVecEle  size " << pfCandIsoPairVecEle.size() << std::endl;
   fillerElectrons.insert(electronHandle,pfCandIsoPairVecEle.begin(),pfCandIsoPairVecEle.end());
   fillerElectrons.fill(); 
   theEvent.put(eleToPFCandIsoMap_p,valueMapElePFCandIso_);

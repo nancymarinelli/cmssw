@@ -34,8 +34,6 @@
 
 class PfBlockBasedIsolation{
  public:
-  //  PfBlockBasedIsolation(const reco::Photon);
-  // PfBlockBasedIsolation(const reco::GsfElectron);
   PfBlockBasedIsolation();
 
 
@@ -51,7 +49,7 @@ class PfBlockBasedIsolation{
 
   
 
-   std::vector<std::pair<reco::PFCandidateRef, bool>> calculate(math::XYZTLorentzVectorD p4,
+    std::vector<reco::PFCandidateRef> calculate(math::XYZTLorentzVectorD p4,
 		 const reco::PFCandidateRef pfEGCand,
 		 const edm::Handle<reco::PFCandidateCollection> pfCandidateHandle);
 
@@ -59,6 +57,7 @@ class PfBlockBasedIsolation{
  
  private:
 
+ double coneSize_;
      
 
 };

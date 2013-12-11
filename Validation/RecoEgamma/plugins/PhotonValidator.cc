@@ -1601,8 +1601,8 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
     edm::LogError("PhotonValidator") << "Error! Can't get the product pfCandidates "<< std::endl ;
   }
 
-  edm::Handle<edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool> > > > phoToParticleBasedIsoMapHandle;
-  edm::ValueMap<std::vector<std::pair<reco::PFCandidateRef, bool> > > phoToParticleBasedIsoMap;
+  edm::Handle<edm::ValueMap<std::vector<reco::PFCandidateRef> > > phoToParticleBasedIsoMapHandle;
+  edm::ValueMap<std::vector<reco::PFCandidateRef> > phoToParticleBasedIsoMap;
   if ( fName_ == "pfPhotonValidator") {
     e.getByLabel("particleBasedIsolation",valueMapPhoPFCandIso_,phoToParticleBasedIsoMapHandle);
     if ( ! phoToParticleBasedIsoMapHandle.isValid()) {
@@ -1619,10 +1619,10 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
       //std::cout << "  I am in the loop " << std::endl;
       reco::PhotonRef photonRef (reco::PhotonRef( photonHandle,lCand));
       //std::cout << "  photon SC energy " << photonRef->superCluster()->energy() << " " <<  phoToParticleBasedIsoMap[photonRef].size() <<  std::endl;
-      for( std::vector<std::pair<reco::PFCandidateRef,bool> >::const_iterator i = phoToParticleBasedIsoMap[photonRef].begin(); i != phoToParticleBasedIsoMap[photonRef].end(); ++i ) {
-	if ( (i->first).isNonnull() ) {
-	  //  float dR= deltaR(photonRef->eta(),  photonRef->phi(), (i->first)->eta(),  (i->first)->phi() );
-	  //std::cout << " Debugging  Candidate dR " << dR << " bool " << (i->second) << " type " << (i->first)->particleId() << " pt " << (i->first)->pt() <<  std::endl;
+      for( std::vector<reco::PFCandidateRef>::const_iterator i = phoToParticleBasedIsoMap[photonRef].begin(); i != phoToParticleBasedIsoMap[photonRef].end(); ++i ) {
+	if ( (*i).isNonnull() ) {
+	  // float dR= deltaR(photonRef->eta(),  photonRef->phi(), (*i)->eta(),  (*i)->phi() );
+	  //std::cout << " Debugging  Candidate dR " << dR << " type " << (*i)->particleId() << " pt " << (*i)->pt() <<  std::endl;
 	}
        }
     }
@@ -2581,6 +2581,7 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 	}
 	//	std::cout << " Debug 1.13 " << std::endl;
       }
+
       ///////////////////////   Particle based isolation
       if ( fName_ == "pfPhotonValidator") {
 	
@@ -2592,66 +2593,71 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 	float SumPtIsoValCleanNh = 0.;
 	float SumPtIsoValCleanPh = 0.;
 
-	float dR=0; 
-	for( std::vector<std::pair<reco::PFCandidateRef,bool> >::const_iterator i = phoToParticleBasedIsoMap[matchingPho].begin(); i != phoToParticleBasedIsoMap[matchingPho].end(); ++i ) {
-	  if ( (i->first).isNonnull() ) {
-	    dR= deltaR(matchingPho->eta(),  matchingPho->phi(),(i->first)->eta(),  (i->first)->phi()); 
-
-            if ( dR<0.4) {
-	      /// uncleaned    
-	      reco::PFCandidate::ParticleType type = (i->first)->particleId();
-	      if ( type == reco::PFCandidate::e ) continue; 
-	      if ( type == reco::PFCandidate::gamma && (i->first)->mva_nothing_gamma() > 0.) continue;
-	      
-	      if( type == reco::PFCandidate::h ) {
-		SumPtIsoValCh += (i->first)->pt();
-		if( phoIsInBarrel)
-		   h_dRPhoPFcand_ChHad_unCleaned_[1]->Fill(dR);
-		else 
-		   h_dRPhoPFcand_ChHad_unCleaned_[2]->Fill(dR);
-	      }
-	      if( type == reco::PFCandidate::h0 ) {
-		SumPtIsoValNh += (i->first)->pt();
-		if( phoIsInBarrel)
-		  h_dRPhoPFcand_NeuHad_unCleaned_[1]->Fill(dR);
-		else 
-		  h_dRPhoPFcand_NeuHad_unCleaned_[2]->Fill(dR);
-	      }
-	      if( type == reco::PFCandidate::gamma ) {
-		SumPtIsoValPh += (i->first)->pt();
-		if( phoIsInBarrel)
-		  h_dRPhoPFcand_Pho_unCleaned_[1]->Fill(dR);
-		else 
+	for(unsigned int lCand=0; lCand < pfCandidateHandle->size(); lCand++) {
+	  reco::PFCandidateRef pfCandRef(reco::PFCandidateRef(pfCandidateHandle,lCand));
+	  float dR= deltaR(matchingPho->eta(),  matchingPho->phi(),pfCandRef->eta(),  pfCandRef->phi()); 
+	  if ( dR<0.4) {
+	    /// uncleaned    
+	    reco::PFCandidate::ParticleType type = pfCandRef->particleId();
+	    if ( type == reco::PFCandidate::e ) continue; 
+	    if ( type == reco::PFCandidate::gamma && pfCandRef->mva_nothing_gamma() > 0.) continue;
+	    
+	    if( type == reco::PFCandidate::h ) {
+	      SumPtIsoValCh += pfCandRef->pt();
+	      if( phoIsInBarrel)
+		h_dRPhoPFcand_ChHad_unCleaned_[1]->Fill(dR);
+	      else 
+		h_dRPhoPFcand_ChHad_unCleaned_[2]->Fill(dR);
+	    }
+	    if( type == reco::PFCandidate::h0 ) {
+	      SumPtIsoValNh += pfCandRef->pt();
+	      if( phoIsInBarrel)
+		h_dRPhoPFcand_NeuHad_unCleaned_[1]->Fill(dR);
+	      else 
+		h_dRPhoPFcand_NeuHad_unCleaned_[2]->Fill(dR);
+	    }
+	    if( type == reco::PFCandidate::gamma ) {
+	      SumPtIsoValPh += pfCandRef->pt();
+	      if( phoIsInBarrel)
+		h_dRPhoPFcand_Pho_unCleaned_[1]->Fill(dR);
+	      else 
 		  h_dRPhoPFcand_Pho_unCleaned_[2]->Fill(dR);
-	      }
-	      /////////////// celaned
-              if (!i->second ) {
+	    }
+	    ////////// acces the value map to access the PFCandidates in overlap with the photon which need to be excluded from the isolation
+	    for( std::vector<reco::PFCandidateRef>::const_iterator i = phoToParticleBasedIsoMap[matchingPho].begin(); i != phoToParticleBasedIsoMap[matchingPho].end(); ++i ) {
+	      if ( (*i).isNonnull() ) {
+		if ( (*i) == pfCandRef ) continue; // exclude the candidate
+
 		if( type == reco::PFCandidate::h ) {
-		  SumPtIsoValCleanCh += (i->first)->pt();
+		  SumPtIsoValCleanCh += pfCandRef->pt();
 		  if( phoIsInBarrel)
 		    h_dRPhoPFcand_ChHad_Cleaned_[1]->Fill(dR);
 		  else 
 		    h_dRPhoPFcand_ChHad_Cleaned_[2]->Fill(dR);
 		}
 		if( type == reco::PFCandidate::h0 ) {
-		  SumPtIsoValCleanNh += (i->first)->pt();
+		  SumPtIsoValCleanNh += pfCandRef->pt();
 		  if( phoIsInBarrel)
 		    h_dRPhoPFcand_NeuHad_Cleaned_[1]->Fill(dR);
 		  else 
 		    h_dRPhoPFcand_NeuHad_Cleaned_[2]->Fill(dR);
 		}
 		if( type == reco::PFCandidate::gamma ) {
-		  SumPtIsoValCleanPh += (i->first)->pt();
+		  SumPtIsoValCleanPh += pfCandRef->pt();
 		  if( phoIsInBarrel)
 		    h_dRPhoPFcand_Pho_Cleaned_[1]->Fill(dR);
 		  else 
 		    h_dRPhoPFcand_Pho_Cleaned_[2]->Fill(dR);
 		}
-	      }
-	    }
-	  }
-	}
-	
+
+
+
+	      }  // check that the reference in the map is non null
+	    } // loop over the PFCandidates flagged as overlapping with the photon
+   
+	    
+	  }  // dr=0.4          
+	}  // loop over all PF Candidates
 
 	if( phoIsInBarrel) {
 	  h_SumPtOverPhoPt_ChHad_Cleaned_[1]->Fill(SumPtIsoValCleanCh/matchingPho->pt());
@@ -2670,7 +2676,7 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 
 	}
 	
-      }
+      } // only for pfPhotonValidator 
 
 
       if ( ! (visibleConversion &&  visibleConversionsWithTwoSimTracks ) ) continue;
