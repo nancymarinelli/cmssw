@@ -3765,6 +3765,11 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 
     if ( phoIsInBarrel ) {
 
+      h_phoBkgE_[1]->Fill( photonE );
+      h_phoBkgEt_[1]->Fill( photonEt);
+      h_scBkgE_[1]->Fill( matchingPho.superCluster()->energy() );
+      h_scBkgEt_[1]->Fill( matchingPho.superCluster()->energy()/cosh( matchingPho.superCluster()->eta()) );
+
       h_r9Bkg_[1]->Fill( r9 );
       h_r1Bkg_[1]->Fill( r1 );
       h_r2Bkg_[1]->Fill( r2 );
@@ -3793,6 +3798,11 @@ void PhotonValidator::analyze( const edm::Event& e, const edm::EventSetup& esup 
 
     } else if ( phoIsInEndcap )  {
 
+      h_phoBkgE_[2]->Fill( photonE );
+      h_phoBkgEt_[2]->Fill( photonEt);
+      h_scBkgE_[2]->Fill( matchingPho.superCluster()->energy() );
+      h_scBkgEt_[2]->Fill( matchingPho.superCluster()->energy()/cosh( matchingPho.superCluster()->eta()) );
+      
       h_r9Bkg_[2]->Fill( r9 );
       h_r1Bkg_[2]->Fill( r1 );
       h_r2Bkg_[2]->Fill( r2 );
