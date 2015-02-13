@@ -100,7 +100,7 @@ int ShashlikDDDConstants::quadrant(int ix, int iy) const {
     if (iy>nRow && iy<=2*nRow) iq = 2;
     else if (iy>0 && iy<=nRow) iq = 3;
   }
-  if (iq == 0) std::cout << "ShashlikDDDConstants::quadrant-> missing ix/iy " << ix << '/' << iy << '/' << nRow << std::endl;
+  //  if (iq == 0) std::cout << "ShashlikDDDConstants::quadrant-> missing ix/iy " << ix << '/' << iy << '/' << nRow << std::endl;
   return iq;
 }
 
