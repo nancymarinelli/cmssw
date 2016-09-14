@@ -82,27 +82,25 @@ void EcalEBTrigPrimTestAlgo::run(const edm::EventSetup & setup, EcalRecHitCollec
   const CaloSubdetectorGeometry *theBarrelGeometry;
   theBarrelGeometry = &(*theBarrelGeometry_handle);
 
-
+  
   EcalTriggerPrimitiveDigi tp;
   std::vector<EcalTriggerPrimitiveSample> tpSam[10];
 
   int nSample=1;  
-  int fEt;
+  uint16_t fEt;
 
   for (unsigned int i=0;i<rh->size();i++) {
-    //    std::cout << " Rec hit number " << i << std::endl;
+    const EBDetId & myid1=(*rh)[i].id();
     if ( (*rh)[i].energy() < 0.2 ) continue;
-    
-    //    tp.setSize(1);
+    tp=  EcalTriggerPrimitiveDigi(  myid1);   
+    tp.setSize(nSample);
     int nSam=0;
+
     for (int iSample=0; iSample<nSample; iSample++) {
-      std::cout << " Sample number " << iSample << std::endl;
-      const EBDetId & myid1=(*rh)[i].id();
-     
       std::cout << " DetId " << myid1 << "Subdetector " << myid1.subdet() << " ieta " << myid1.ieta() << " iphi " << myid1.iphi() << std::endl;
-      nSam++;
+      
       float theta =  theBarrelGeometry->getGeometry(myid1)->getPosition().theta();
-      float et=((*rh)[i].energy())*sin(theta);
+      uint16_t et=((*rh)[i].energy())*sin(theta);
       fEt=et;
       std::cout << " Et before formatting " << et << " " << fEt << std::endl;
       if (fEt >0xfff)
@@ -111,10 +109,8 @@ void EcalEBTrigPrimTestAlgo::run(const edm::EventSetup & setup, EcalRecHitCollec
       if (fEt>0x3ff) fEt=0x3ff;
       std::cout << " Et after formatting " << fEt << std::endl;
       EcalTriggerPrimitiveSample mysam(et);
-   
-      std::cout << " Sample # " <<  nSam << " " << mysam << std::endl;
-      tp=  EcalTriggerPrimitiveDigi(  myid1);   
       tp.setSample(nSam, mysam );
+      nSam++;
       std::cout << "in TestAlgo" <<" tp size "<<tp.size() << std::endl;
     }
  
@@ -125,7 +121,7 @@ void EcalEBTrigPrimTestAlgo::run(const edm::EventSetup & setup, EcalRecHitCollec
     else 
       resultTcp.push_back(tp);
 
-    std::cout << "in TestAlgo" <<" For tower  "<<tp.id()<<", TP is "<< tp << " SAMPLE " << tp.sample(1) << std::endl;
+   
     std::cout << " result size " << result.size() << std::endl;
 
   }

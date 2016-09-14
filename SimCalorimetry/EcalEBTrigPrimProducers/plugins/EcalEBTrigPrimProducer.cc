@@ -126,6 +126,7 @@ EcalEBTrigPrimProducer::produce(edm::Event& e, const edm::EventSetup&  iSetup)
    
     for (int isam=0;isam<(*pOut)[i].size();++isam) {
       std::cout << " (*pOut)[i][isam].raw() "  <<  (*pOut)[i][isam].raw() << std::endl;
+      std::cout << " (*pOut)[i][isam].compressedEt() "  <<  (*pOut)[i][isam].compressedEt() << std::endl;
     }
     std::cout << "EcalTPG" <<" For tower  "<<(((*pOut)[i])).id()<<", TP is "<<(*pOut)[i];
   }
