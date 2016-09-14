@@ -15,7 +15,7 @@ EcalTriggerPrimitiveDigi::EcalTriggerPrimitiveDigi(const EBDetId& id) : id_(id),
 void EcalTriggerPrimitiveDigi::setSample(int i, const EcalTriggerPrimitiveSample& sam) 
 {
 data_[i]=sam;
- std::cout << " Fuck you " << data_[i] << " " << sam << std::endl;  
+ std::cout << " In setSample " << data_[i] << " " << sam << std::endl;  
 }
 
 int EcalTriggerPrimitiveDigi::sampleOfInterest() const
