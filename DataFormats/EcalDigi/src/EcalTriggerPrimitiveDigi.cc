@@ -1,11 +1,21 @@
 #include "DataFormats/EcalDigi/interface/EcalTriggerPrimitiveDigi.h"
-
+#include <iostream>
 
 
 EcalTriggerPrimitiveDigi::EcalTriggerPrimitiveDigi() : size_(0), data_(MAXSAMPLES) {
 }
-EcalTriggerPrimitiveDigi::EcalTriggerPrimitiveDigi(const EcalTrigTowerDetId& id) : id_(id),
+//EcalTriggerPrimitiveDigi::EcalTriggerPrimitiveDigi(const EcalTrigTowerDetId& id) : id_(id),
+//size_(0), data_(MAXSAMPLES) {
+//}
+
+EcalTriggerPrimitiveDigi::EcalTriggerPrimitiveDigi(const EBDetId& id) : id_(id),
 										   size_(0), data_(MAXSAMPLES) {
+}
+
+void EcalTriggerPrimitiveDigi::setSample(int i, const EcalTriggerPrimitiveSample& sam) 
+{
+data_[i]=sam;
+ std::cout << " Fuck you " << data_[i] << " " << sam << std::endl;  
 }
 
 int EcalTriggerPrimitiveDigi::sampleOfInterest() const

@@ -17,9 +17,10 @@
    <class name="EcalTriggerPrimitiveSample" ClassVersion="10">
     <version ClassVersion="10" checksum="251958438"/>
    </class>
-   <class name="EcalTriggerPrimitiveDigi" ClassVersion="10">
-    <version ClassVersion="10" checksum="3058718200"/>
+   <class name="EcalTriggerPrimitiveDigi" ClassVersion="12">
+    <version ClassVersion="12" checksum="1614412819"/>
    </class>
+
    <class name="EcalPseudoStripInputSample" ClassVersion="10">
     <version ClassVersion="10" checksum="2913557465"/>
    </class>
