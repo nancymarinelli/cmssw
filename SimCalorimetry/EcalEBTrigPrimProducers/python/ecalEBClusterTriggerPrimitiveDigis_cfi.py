@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 #
 # attention: default is changed to work on unsuppressed digis!! ##############
 #
-simEcalEBTriggerPrimitiveDigis = cms.EDProducer("EcalEBTrigPrimProducer",
+simEcalEBClusterTriggerPrimitiveDigis = cms.EDProducer("EcalEBClusterTrigPrimProducer",
     BarrelOnly = cms.bool(True),
     barrelEcalDigis = cms.InputTag("simEcalUnsuppressedDigis"),
     binOfMaximum = cms.int32(6), ## optional from release 200 on, from 1-10

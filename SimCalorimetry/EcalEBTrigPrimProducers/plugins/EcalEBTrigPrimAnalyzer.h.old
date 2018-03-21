@@ -1,0 +1,97 @@
+#include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Utilities/interface/EDGetToken.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+#include "Geometry/CaloTopology/interface/EcalTrigTowerConstituentsMap.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include <vector>
+#include <string>
+#include <TH1I.h>
+#include <TFile.h>
+#include <TTree.h>
+#include <TH2F.h>
+#include <TH1F.h>
+
+//
+// class declaration
+//
+
+class EcalEBTrigPrimAnalyzer : public edm::one::EDAnalyzer<> {
+   public:
+  explicit EcalEBTrigPrimAnalyzer(const edm::ParameterSet&);
+  ~EcalEBTrigPrimAnalyzer();
+
+
+  virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
+  virtual void endJob();
+   private:
+
+  int nEvents_;
+  int nTotTP_;
+  void init(const edm::EventSetup&);
+
+  // for histos of nr of hits
+  std::vector<std::string> ecal_parts_;
+  TH1I * ecal_et_[2];
+  TH1I * ecal_tt_[2];
+  TH1I * ecal_fgvb_[2];
+  TH1I *histEndc,*histBar;
+  TFile *histfile_;
+  TH1F *hAllTPperEvt_;
+  TH1F *hTPperEvt_;
+  TH2F *hTPvsRechit_;
+  TH1F *hTPoverRechit_;
+  TH1F *hDeltaEt_;
+  TH1F *hAllRechitEt_;
+  TH1F *hRechitEt_;
+  TH1F *hTPEt_;
+  TH1F *hRatioEt_;
+  TH2F *hTPvsTow_ieta_;
+  TH2F *hTPvsTow_eta_;
+  TH2F *hTP_iphiVsieta_;
+  TH2F *hRH_iphiVsieta_;
+  TH2F *hTP_iphiVsieta_fullrange_;
+  TH2F *hRH_iphiVsieta_fullrange_;
+  TH1F *h_bxNumber_;
+  TH1F *h_pu_;
+  // clusters
+  TH1F *hCluTPperEvt_;
+  TH1F *hCluTPoverRechit_;
+  TH2F *hCluTPvsRechit_;
+  TH1F *h_nClu_[5];  
+  TH1F *h_nXtals_;
+  TH1F *h_etCluTP_;
+
+  TTree *tree_ ;
+  TTree *treeCl_;  
+
+  int tpIphi_, tpIeta_ , tpgADC_, ttf_, fg_ ;
+  int rhIeta_, rhIphi_;
+  float eRec_, tpgGeV_ ;
+
+  int nCl_, etClInADC_;
+  float eCl_, etClInGeV_,etaCl_, phiCl_, s_eCl_, s_etCl_;
+  float s_etaCl_, s_phiCl_;
+  int nXtals_;
+  float etCluFromRH_;
+
+  //edm::InputTag label_;
+  edm::EDGetTokenT<EcalEBTrigPrimDigiCollection> primToken_;
+  edm::EDGetTokenT<EcalEBClusterTrigPrimDigiCollection> primCluToken_;
+  edm::EDGetTokenT<EcalRecHitCollection> rechits_labelEB_;
+  edm::EDGetTokenT<EBDigiCollection> tokenEBdigi_;
+  edm::EDGetTokenT< std::vector<PileupSummaryInfo> > pileupSummaryToken_;
+
+  bool recHits_;
+  bool debug_;
+  edm::ESHandle<EcalTrigTowerConstituentsMap> eTTmap_;
+
+  int getIndex(const  EBDigiCollection *, EcalTrigTowerDetId& id) {return id.hashedIndex();}  
+
+};
