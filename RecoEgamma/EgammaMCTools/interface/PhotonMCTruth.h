@@ -3,6 +3,7 @@
 
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "SimDataFormats/Track/interface/SimTrack.h"
+#include "RecoEgamma/EgammaMCTools/interface/ElectronMCTruth.h"
 #include <CLHEP/Matrix/Vector.h>
 #include <CLHEP/Vector/LorentzVector.h>
 #include <vector>
@@ -18,7 +19,7 @@
 
 
 
-class ElectronMCTruth;
+//class ElectronMCTruth;
 class PhotonMCTruth {
 public:
   PhotonMCTruth() : isAConversion_(0),thePhoton_(0.,0.,0.), 
