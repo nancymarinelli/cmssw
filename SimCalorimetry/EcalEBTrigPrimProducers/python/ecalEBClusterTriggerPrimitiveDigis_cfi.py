@@ -11,8 +11,8 @@ simEcalEBClusterTriggerPrimitiveDigis = cms.EDProducer("EcalEBCluTrigPrimProduce
     TcpOutput = cms.bool(False),
     Debug = cms.bool(False),
     nOfSamples = cms.int32(1),
-    etaSize = cms.int32(2), # to build the 3x3 or 3x5 or whatever. the int is always size-1. So fra a 3x3, one needs to input 2,2 
-    phiSize = cms.int32(2),
+    etaSize = cms.int32(2), # to build the 3x3 or 3x5 or else. For  a 3x3, one needs to input 2,2, for a 5x5 one needs to input 3, for a 3x5 one needs to input, (2,3) 
+    phiSize = cms.int32(3),
     hitNoiseCut = cms.double(0.175),
     etCutOnSeed = cms.double(0.4375) # 2.5x0.175 see Sasha slides
 
