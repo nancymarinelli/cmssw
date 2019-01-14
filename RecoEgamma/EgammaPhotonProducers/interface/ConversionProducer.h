@@ -82,6 +82,7 @@ class ConversionProducer : public edm::stream::EDProducer<> {
 
       // ----------member data ---------------------------
       std::string algoName_;
+      std::string componentName_;
 
       typedef math::XYZPointF Point;
       typedef std::vector<Point> PointCollection;

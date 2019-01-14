@@ -155,6 +155,8 @@ highlevelreco = cms.Sequence(egammaHighLevelRecoPrePF*
                              reducedRecHits*
                              cosmicDCTracksSeq
                              )
+highlevelreco *= conversionOpenTrackSequence
+highlevelreco *= gsfTracksOpenConversionSequence     
 
 # AA data with pp reco
 from Configuration.Eras.Modifier_pp_on_XeXe_2017_cff import pp_on_XeXe_2017
