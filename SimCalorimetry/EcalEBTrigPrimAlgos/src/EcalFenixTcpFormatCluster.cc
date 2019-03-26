@@ -1,4 +1,4 @@
-#include <SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalFenixTcpFormat.h>
+#include <SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalFenixTcpFormatCluster.h>
 #include "CondFormats/EcalObjects/interface/EcalTPGLutGroup.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGLutIdMap.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGTowerStatus.h"
@@ -8,19 +8,19 @@
 
 using  namespace std;
 
-EcalFenixTcpFormat::EcalFenixTcpFormat(bool tcpFormat, bool debug, bool famos,int binOfMax)
+EcalFenixTcpFormatCluster::EcalFenixTcpFormatCluster(bool tcpFormat, bool debug, bool famos,int binOfMax)
   : tcpFormat_(tcpFormat),debug_(debug),famos_(famos),binOfMax_(binOfMax)
 {
   status_=0;
   badTTStatus_=&status_;
 }
  
-EcalFenixTcpFormat::~EcalFenixTcpFormat() {
+EcalFenixTcpFormatCluster::~EcalFenixTcpFormatCluster() {
 }
 
 
 
-void EcalFenixTcpFormat::process(std::vector<int> &Etin, std::vector<int> &Etout){
+void EcalFenixTcpFormatCluster::process(std::vector<int> &Etin, std::vector<int> &Etout){
   // put TP-s in the output
   // on request also in TcpFormat    
   // for famos version we have to write dummies except for the middle
@@ -54,10 +54,10 @@ void EcalFenixTcpFormat::process(std::vector<int> &Etin, std::vector<int> &Etout
 
 
  
-void EcalFenixTcpFormat::process(std::vector<int> &Et, std::vector<int> &fgvb,
+void EcalFenixTcpFormatCluster::process(std::vector<int> &Et, std::vector<int> &fgvb,
                                  std::vector<int> &sfgvb,int eTTotShift,
-				 std::vector<EcalEBTriggerPrimitiveSample> & out,
-				 std::vector<EcalEBTriggerPrimitiveSample> & out2, bool isInInnerRings){
+				 std::vector<EcalEBClusterTriggerPrimitiveSample> & out,
+				 std::vector<EcalEBClusterTriggerPrimitiveSample> & out2, bool isInInnerRings){
   // put TP-s in the output
   // on request also in TcpFormat    
   // for famos version we have to write dummies except for the middle
@@ -80,19 +80,18 @@ void EcalFenixTcpFormat::process(std::vector<int> &Et, std::vector<int> &fgvb,
 	else
 	  lut_out = (lut_)[myEt] ;
 	
-	
+
 	myEt = lut_out & 0xff ;
-	out[i]=EcalEBTriggerPrimitiveSample( myEt ); 
+
+	out[i]=EcalEBClusterTriggerPrimitiveSample( myEt ); 
       }
-      else out[i]=EcalEBTriggerPrimitiveSample( );
+      else out[i]=EcalEBClusterTriggerPrimitiveSample( );
     }
   }
   else {
-    
+
     for (unsigned int i=0; i<Et.size();++i) {
-
       int mysFgvb=sfgvb[i];
-
       // bug fix 091009:
       myEt=Et[i]; 
       if (myEt>0xfff) 
@@ -100,7 +99,6 @@ void EcalFenixTcpFormat::process(std::vector<int> &Et, std::vector<int> &fgvb,
       if (isInInnerRings) 
 	myEt = myEt /2 ;  
       myEt >>= eTTotShift ;
-      
       if (myEt>0x3ff) myEt=0x3ff ;
 
       // Spike killing
@@ -116,19 +114,19 @@ void EcalFenixTcpFormat::process(std::vector<int> &Et, std::vector<int> &fgvb,
       else
 	lut_out = (lut_)[myEt] ;
       
-      
+     
       if (tcpFormat_)  {
-	out2[i]=EcalEBTriggerPrimitiveSample( myEt & 0x3ff);
-
+	out2[i]=EcalEBClusterTriggerPrimitiveSample( myEt & 0x3ff);
       }
 
       myEt = lut_out & 0xff ;
-      out[i]=EcalEBTriggerPrimitiveSample( myEt ); 
+      //std::cout << " FenixTcpFormatter final lut_out " << lut_out << " 0xff " << 0xff << " et " << myEt << std::endl;
+      out[i]=EcalEBClusterTriggerPrimitiveSample( myEt ); 
     }
   }
 }
 
-void EcalFenixTcpFormat::setParameters(uint32_t towid,const EcalTPGLutGroup *ecaltpgLutGroup, const EcalTPGLutIdMap *ecaltpgLut, const EcalTPGTowerStatus *ecaltpgbadTT,const EcalTPGSpike * ecaltpgSpike)
+void EcalFenixTcpFormatCluster::setParameters(uint32_t towid,const EcalTPGLutGroup *ecaltpgLutGroup, const EcalTPGLutIdMap *ecaltpgLut, const EcalTPGTowerStatus *ecaltpgbadTT,const EcalTPGSpike * ecaltpgSpike)
 {
   // Get TP zeroing threshold - defaut to 1023 for old data (no record found or EE)
   spikeZeroThresh_ = 1023;

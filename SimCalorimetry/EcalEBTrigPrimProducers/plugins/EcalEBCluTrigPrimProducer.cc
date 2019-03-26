@@ -1,6 +1,6 @@
-/** \class EcalEBTrigPrimProducer
+/** \class EcalEBCluTrigPrimProducer
  * For Phase II
- * EcalEBTrigPrimProducer produces a EcalEBTrigPrimDigiCollection
+ * EcalEBCluTrigPrimProducer produces a EcalEBClusterTrigPrimDigiCollection
  * out of PhaseI Digis. This is a simple starting point to fill in the chain
  * for Phase II
  * 
@@ -38,61 +38,40 @@
 #include "CondFormats/DataRecord/interface/EcalTPGTowerStatusRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTPGSpikeRcd.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGSpike.h"
+#include "EcalEBCluTrigPrimProducer.h"
+#include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBTrigPrimClusterAlgo.h"
 
-
-/*
-#include "CondFormats/DataRecord/interface/EcalTPGFineGrainEBGroupRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGFineGrainEBIdMapRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGFineGrainTowerEERcd.h"
-
-#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainEBGroup.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainEBIdMap.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainTowerEE.h"
-#include "CondFormats/DataRecord/interface/EcalTPGFineGrainStripEERcd.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGWeightIdMap.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGWeightGroup.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainStripEE.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGTowerStatus.h"
-#include "CondFormats/DataRecord/interface/EcalTPGStripStatusRcd.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGStripStatus.h"
-*/
-
-#include "EcalEBTrigPrimProducer.h"
-#include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBTrigPrimBaseAlgo.h"
-#include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBTrigPrimTestAlgo.h"
-
-
-EcalEBTrigPrimProducer::EcalEBTrigPrimProducer(const edm::ParameterSet&  iConfig):
+EcalEBCluTrigPrimProducer::EcalEBCluTrigPrimProducer(const edm::ParameterSet&  iConfig):
   barrelOnly_(iConfig.getParameter<bool>("BarrelOnly")),
   tcpFormat_(iConfig.getParameter<bool>("TcpOutput")),
   debug_(iConfig.getParameter<bool>("Debug")),
   famos_(iConfig.getParameter<bool>("Famos")),
   nSamples_(iConfig.getParameter<int>("nOfSamples")),
-  binOfMaximum_(iConfig.getParameter<int>("binOfMaximum"))
- 
-{  
+  binOfMaximum_(iConfig.getParameter<int>("binOfMaximum")),
+  dEta_(iConfig.getParameter<int>("etaSize")),
+  dPhi_(iConfig.getParameter<int>("phiSize")),
+  hitNoiseCut_(iConfig.getParameter<double>("hitNoiseCut")),
+  etCutOnSeed_(iConfig.getParameter<double>("etCutOnSeed"))
+  
+{ 
   tokenEBdigi_=consumes<EBDigiCollection>(iConfig.getParameter<edm::InputTag>("barrelEcalDigis"));
   //register your products
-  produces <EcalEBTrigPrimDigiCollection >();
-  if (tcpFormat_) produces <EcalEBTrigPrimDigiCollection >("formatTCP");
+  produces <EcalEBClusterTrigPrimDigiCollection >();
+  if (tcpFormat_) produces <EcalEBClusterTrigPrimDigiCollection >("formatTCP");
 }
 
 
 
-void EcalEBTrigPrimProducer::beginRun(edm::Run const & run,edm::EventSetup const& setup) {
-  //ProcessHistory is guaranteed to be constant for an entire Run
-  //binOfMaximum_ = findBinOfMaximum(fillBinOfMaximumFromHistory_,binOfMaximum_,run.processHistory());
+void EcalEBCluTrigPrimProducer::beginRun(edm::Run const & run,edm::EventSetup const& setup) {
 
-  
-  algo_.reset( new EcalEBTrigPrimTestAlgo(setup,nSamples_,binOfMaximum_,tcpFormat_,barrelOnly_,debug_, famos_) );
-  
+  algo_.reset( new EcalEBTrigPrimClusterAlgo(setup,nSamples_,binOfMaximum_,tcpFormat_,barrelOnly_,debug_, famos_) );
   
    // get a first version of the records
   cacheID_=this->getRecords(setup);
   nEvent_=0;
 }
 
-unsigned long long  EcalEBTrigPrimProducer::getRecords(edm::EventSetup const& setup) {
+unsigned long long  EcalEBCluTrigPrimProducer::getRecords(edm::EventSetup const& setup) {
 
   // get parameter records for xtals
   edm::ESHandle<EcalTPGLinearizationConst> theEcalTPGLinearization_handle;
@@ -150,18 +129,18 @@ unsigned long long  EcalEBTrigPrimProducer::getRecords(edm::EventSetup const& se
 
 
 
-void EcalEBTrigPrimProducer::endRun(edm::Run const& run,edm::EventSetup const& setup) {
+void EcalEBCluTrigPrimProducer::endRun(edm::Run const& run,edm::EventSetup const& setup) {
   algo_.reset();
 }
 
 
-EcalEBTrigPrimProducer::~EcalEBTrigPrimProducer()
+EcalEBCluTrigPrimProducer::~EcalEBCluTrigPrimProducer()
 {}
 
 
 // ------------ method called to produce the data  ------------
 void
-EcalEBTrigPrimProducer::produce(edm::Event& e, const edm::EventSetup&  iSetup)
+EcalEBCluTrigPrimProducer::produce(edm::Event& e, const edm::EventSetup&  iSetup)
 {
 
   nEvent_++;
@@ -181,21 +160,18 @@ EcalEBTrigPrimProducer::produce(edm::Event& e, const edm::EventSetup&  iSetup)
 
  
   if (debug_) std::cout << "EcalTPG" <<" =================> Treating event  "<< nEvent_<<", Number of EB digis "<<barrelDigiHandle.product()->size() << std::endl;
- 
-  auto pOut = std::make_unique<EcalEBTrigPrimDigiCollection>();
-  auto pOutTcp = std::make_unique<EcalEBTrigPrimDigiCollection>();
+   
+  auto pOut = std::make_unique<EcalEBClusterTrigPrimDigiCollection>();
+  auto pOutTcp = std::make_unique<EcalEBClusterTrigPrimDigiCollection>();
 
  
-  // if ( e.id().event() != 648 ) return;
-
-  //std::cout << " Event number " << e.id().event() << std::endl;
 
   // invoke algorithm 
 
  
   const EBDigiCollection *ebdigi=NULL;
   ebdigi=barrelDigiHandle.product();
-  algo_->run(iSetup,ebdigi,*pOut,*pOutTcp);
+  algo_->run(iSetup,ebdigi,*pOut,*pOutTcp, dEta_, dPhi_,hitNoiseCut_,etCutOnSeed_);
   
 
   if (debug_ ) std::cout << "produce" << " For Barrel  "<<pOut->size()<<" TP  Digis were produced" << std::endl;
