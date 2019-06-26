@@ -26,6 +26,10 @@
 
 #include <iostream>
 
+#include "RecoParticleFlow/PFClusterTools/interface/PFEnergyCalibration.h"
+#include "RecoParticleFlow/PFClusterTools/interface/PFEnergyCalibrationHF.h"
+
+
 /// \brief Particle Flow Algorithm
 /*!
   \author Colin Bernet
@@ -33,9 +37,6 @@
 */
 
 
-class PFEnergyCalibration;
-class PFSCEnergyCalibration;
-class PFEnergyCalibrationHF;
 class PFMuonAlgo;
 
 class ElementIndices {
@@ -56,16 +57,11 @@ class PFAlgo {
  public:
 
   /// constructor
-  PFAlgo(bool debug);
+  PFAlgo(double nSigmaECAL, double nSigmaHCAL, PFEnergyCalibration& calibration, PFEnergyCalibrationHF& thepfEnergyCalibrationHF, const edm::ParameterSet& pset, bool debug);
 
   void setHOTag(bool ho) { useHO_ = ho;}
   void setMuonHandle(const edm::Handle<reco::MuonCollection>&);
 
-  void setParameters(double nSigmaECAL,
-                     double nSigmaHCAL, 
-                     const std::shared_ptr<PFEnergyCalibration>& calibration,
-		     const std::shared_ptr<PFEnergyCalibrationHF>& thepfEnergyCalibrationHF);
-  
   void setCandConnectorParameters( const edm::ParameterSet& iCfgCandConnector ){
     connector_.setParameters(iCfgCandConnector);
   }
@@ -79,11 +75,6 @@ class PFAlgo {
     connector_.setParameters(bCorrect, bCalibPrimary, dptRel_PrimaryTrack, dptRel_MergedTrack, ptErrorSecondary, nuclCalibFactors);
   }
 
-
-  void setPFMuonAndFakeParameters(const edm::ParameterSet& pset);
-
-  void setBadHcalTrackParams(const edm::ParameterSet& pset);
-   
   PFMuonAlgo*  getPFMuonAlgo();
   
   void setEGammaParameters(bool use_EGammaFilters, bool useProtectionsForJetMET);
@@ -130,23 +121,27 @@ class PFAlgo {
     return connector_.connect(*pfCandidates_);
   }
   
-  /// return the pointer to the calibration function
-  PFEnergyCalibration* thePFEnergyCalibration() { 
-    return calibration_.get();
-  }
-
   friend std::ostream& operator<<(std::ostream& out, const PFAlgo& algo);
   
  private:
 
-  /// process one block. can be reimplemented in more sophisticated 
-  /// algorithms
-  
   void egammaFilters(const reco::PFBlockRef &blockref, std::vector<bool>& active, PFEGammaFilters const* pfegamma);
   void conversionAlgo(const edm::OwnVector<reco::PFBlockElement> &elements, std::vector<bool>& active);
   void elementLoop(const reco::PFBlock &block, reco::PFBlock::LinkData& linkData, const edm::OwnVector<reco::PFBlockElement> &elements, std::vector<bool>& active, const reco::PFBlockRef &blockref, ElementIndices& inds, std::vector<bool> &deadArea);
   int decideType(const edm::OwnVector<reco::PFBlockElement> &elements, const reco::PFBlockElement::Type type, std::vector<bool>& active, ElementIndices& inds, std::vector<bool> &deadArea, unsigned int iEle);
+  bool recoTracksNotHCAL(const reco::PFBlock &block, reco::PFBlock::LinkData& linkData, const edm::OwnVector<reco::PFBlockElement> &elements, const reco::PFBlockRef &blockref, std::vector<bool>& active, bool goodTrackDeadHcal, bool hasDeadHcal, unsigned int iTrack, std::multimap<double, unsigned>& ecalElems, reco::TrackRef& trackRef);
 
+
+  //Looks for a HF-associated element in the block and produces a PFCandidate from it with HF_EM and/or HF_HAD calibrations
+  void createCandidateHF(const reco::PFBlock &block, const reco::PFBlockRef &blockref, const edm::OwnVector<reco::PFBlockElement> &elements, ElementIndices& inds);
+
+  void createCandidatesHCAL(const reco::PFBlock &block, reco::PFBlock::LinkData& linkData, const edm::OwnVector<reco::PFBlockElement> &elements, std::vector<bool>& active, const reco::PFBlockRef &blockref, ElementIndices& inds, std::vector<bool> &deadArea);
+  void createCandidatesHCALUnlinked(const reco::PFBlock &block, reco::PFBlock::LinkData& linkData, const edm::OwnVector<reco::PFBlockElement> &elements, std::vector<bool>& active, const reco::PFBlockRef &blockref, ElementIndices& inds, std::vector<bool> &deadArea);
+
+void createCandidatesECAL(const reco::PFBlock &block, reco::PFBlock::LinkData& linkData, const edm::OwnVector<reco::PFBlockElement> &elements, std::vector<bool>& active, const reco::PFBlockRef &blockref, ElementIndices& inds, std::vector<bool> &deadArea);
+
+  /// process one block. can be reimplemented in more sophisticated 
+  /// algorithms
   void processBlock( const reco::PFBlockRef& blockref,
                              std::list<reco::PFBlockRef>& hcalBlockRefs, 
                              std::list<reco::PFBlockRef>& ecalBlockRefs, PFEGammaFilters const* pfegamma );
@@ -199,14 +194,13 @@ class PFAlgo {
   void postCleaning();
 
   /// number of sigma to judge energy excess in ECAL
-  double             nSigmaECAL_;
+  const double nSigmaECAL_;
   
   /// number of sigma to judge energy excess in HCAL
-  double             nSigmaHCAL_;
+  const double nSigmaHCAL_;
   
-  std::shared_ptr<PFEnergyCalibration>  calibration_;
-  std::shared_ptr<PFEnergyCalibrationHF>  thepfEnergyCalibrationHF_;
-  std::shared_ptr<PFSCEnergyCalibration> thePFSCEnergyCalibration_;
+  PFEnergyCalibration & calibration_;
+  PFEnergyCalibrationHF & thepfEnergyCalibrationHF_;
 
   bool               useHO_;
   const bool         debug_;
@@ -281,7 +275,7 @@ class PFAlgo {
 
   //MIKE -May19th: Add option for the vertices....
   reco::Vertex       primaryVertex_;
-  bool               useVertices_; 
+  bool               useVertices_ = false;
 
   edm::Handle<reco::MuonCollection> muonHandle_;
 

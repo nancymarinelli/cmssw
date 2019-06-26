@@ -19,7 +19,7 @@
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
 
 #include "RecoLocalCalo/HGCalRecAlgos/interface/RecHitTools.h"
-#include "RecoLocalCalo/HGCalRecAlgos/interface/KDTreeLinkerAlgoT.h"
+#include "CommonTools/RecoAlgos/interface/KDTreeLinkerAlgo.h"
 
 // C/C++ headers
 #include <string>
@@ -48,7 +48,7 @@ public:
      fcPerMip_(ps.getParameter<std::vector<double> >("fcPerMip")),
      fcPerEle_(ps.getParameter<double>("fcPerEle")),
      nonAgedNoises_(ps.getParameter<edm::ParameterSet>("noises").getParameter<std::vector<double> >("values")),
-     noiseMip_(ps.getParameter<edm::ParameterSet>("noiseMip").getParameter<double>("value")),
+     noiseMip_(ps.getParameter<edm::ParameterSet>("noiseMip").getParameter<double>("noise_MIP")),
      initialized_(false),
      points_(2*(maxlayer+1)),
      minpos_(2*(maxlayer+1),{ {0.0f,0.0f} }),
@@ -114,7 +114,11 @@ static void fillPSetDescription(edm::ParameterSetDescription& iDesc) {
   descNestedNoises.add<std::vector<double> >("values", {});
   iDesc.add<edm::ParameterSetDescription>("noises", descNestedNoises);
   edm::ParameterSetDescription descNestedNoiseMIP;
-  descNestedNoiseMIP.add<double>("value", 0 );
+  descNestedNoiseMIP.add<bool>("scaleByDose", false );
+  iDesc.add<edm::ParameterSetDescription>("scaleByDose", descNestedNoiseMIP);
+  descNestedNoiseMIP.add<std::string>("doseMap", "" );
+  iDesc.add<edm::ParameterSetDescription>("doseMap", descNestedNoiseMIP);
+  descNestedNoiseMIP.add<double>("noise_MIP", 1./100. );
   iDesc.add<edm::ParameterSetDescription>("noiseMip", descNestedNoiseMIP);
 }
 
@@ -205,8 +209,8 @@ struct Hexel {
 
 };
 
-typedef KDTreeLinkerAlgo<Hexel,2> KDTree;
-typedef KDTreeNodeInfoT<Hexel,2> KDNode;
+typedef KDTreeLinkerAlgo<Hexel> KDTree;
+typedef KDTreeNodeInfo<Hexel> KDNode;
 
 
 std::vector<std::vector<std::vector< KDNode> > > layerClustersPerLayer_;
@@ -239,7 +243,7 @@ inline double distance(const Hexel &pt1, const Hexel &pt2) const{   //2-d distan
 }
 double calculateLocalDensity(std::vector<KDNode> &, KDTree &, const unsigned int) const;   //return max density
 double calculateDistanceToHigher(std::vector<KDNode> &) const;
-int findAndAssignClusters(std::vector<KDNode> &, KDTree &, double, KDTreeBox &, const unsigned int, std::vector<std::vector<KDNode> >&) const;
+int findAndAssignClusters(std::vector<KDNode> &, KDTree &, double, KDTreeBox<2> &, const unsigned int, std::vector<std::vector<KDNode> >&) const;
 math::XYZPoint calculatePosition(std::vector<KDNode> &) const;
 
 //For keeping the density information
