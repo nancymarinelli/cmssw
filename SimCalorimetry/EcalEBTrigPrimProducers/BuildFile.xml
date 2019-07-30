@@ -20,7 +20,7 @@
 <use   name="Geometry/CaloTopology"/>
 <use   name="RecoEcal/EgammaCoreTools"/>
 <use   name="FastSimulation/Particle"/>
-<use   name="FastSimulation/BaseParticlePropagator"/>
+<use   name="CommonTools/BaseParticlePropagator"/>
 <use   name="SimGeneral/HepPDTRecord"/>
 <use   name="RecoEgamma/EgammaMCTools"/>
 <export>

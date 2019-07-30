@@ -34,11 +34,11 @@
 #include "RecoEcal/EgammaCoreTools/plugins/EcalClusterCrackCorrection.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "CalibCalorimetry/EcalTPGTools/interface/EcalTPGScale.h"
-
-#include "FastSimulation/Particle/interface/RawParticle.h"
-#include "FastSimulation/BaseParticlePropagator/interface/BaseParticlePropagator.h"
-#include "FastSimulation/Particle/interface/ParticleTable.h"
 #include "SimGeneral/HepPDTRecord/interface/ParticleDataTable.h"
+
+#include "CommonTools/BaseParticlePropagator/interface/RawParticle.h"
+#include "CommonTools/BaseParticlePropagator/interface/BaseParticlePropagator.h"
+//#include "FastSimulation/Particle/interface/ParticleTable.h"
 
 #include "RecoEgamma/EgammaMCTools/interface/PhotonMCTruth.h"
 
@@ -641,11 +641,15 @@ EcalEBTrigPrimAnalyzer::analyze(const edm::Event& iEvent, const  edm::EventSetup
 	      BaseParticlePropagator start(prop);
 	      prop.propagateToEcalEntrance();
               if ( prop.getSuccess() !=0) {
-                trueEle_p4 = new reco::Candidate::PolarLorentzVector(prop.E()*sin(prop.vertex().theta()),  prop.vertex().eta(), prop.vertex().phi(), 0.);
-                float pstart = sqrt ( start.momentum().x()*start.momentum().x() + start.momentum().y()*start.momentum().y() + start.momentum().z()*start.momentum().z()  );
-		if (debug_) std::cout << " starting state   "  << " vertex " << start.vertex().x() << " " << start.vertex().y() << " " << start.vertex().z() << " momentum " << pstart << std::endl;
-                float pprop = sqrt ( prop.momentum().x()*prop.momentum().x() + prop.momentum().y()*prop.momentum().y() + prop.momentum().z()*prop.momentum().z()  );
-		 if (debug_)std::cout << " After propagation "  << " vertex " << prop.vertex().x() << " " << prop.vertex().y() << " " << prop.vertex().z() << " momentum " << pprop << std::endl;
+                trueEle_p4 = new reco::Candidate::PolarLorentzVector(prop.particle().E()*sin(prop.particle().vertex().theta()),  prop.particle().vertex().eta(), prop.particle().vertex().phi(), 0.);
+                float pstart = sqrt ( start.particle().momentum().x()*start.particle().momentum().x() + 
+				      start.particle().momentum().y()*start.particle().momentum().y() + 
+				      start.particle().momentum().z()*start.particle().momentum().z()  );
+		if (debug_) std::cout << " starting state   "  << " vertex " << start.particle().vertex().x() << " " << start.particle().vertex().y() << " " << start.particle().vertex().z() << " momentum " << pstart << std::endl;
+                float pprop = sqrt ( prop.particle().momentum().x()*prop.particle().momentum().x() + 
+				     prop.particle().momentum().y()*prop.particle().momentum().y() + 
+				     prop.particle().momentum().z()*prop.particle().momentum().z()  );
+		 if (debug_)std::cout << " After propagation "  << " vertex " << prop.particle().vertex().x() << " " << prop.particle().vertex().y() << " " << prop.particle().vertex().z() << " momentum " << pprop << std::endl;
 		if (debug_) std::cout << " Momentum difference " << myGp->p()-pprop << std::endl;
 	      } else {
 		if (debug_) std::cout << " Prop fails " << std::endl;
@@ -806,9 +810,9 @@ EcalEBTrigPrimAnalyzer::analyze(const edm::Event& iEvent, const  edm::EventSetup
       prop.propagateToEcalEntrance();
       
       if ( prop.getSuccess() !=0) {
-	trueEle_p4 = new reco::Candidate::PolarLorentzVector(prop.E()*sin(prop.vertex().theta()),  prop.vertex().eta(), prop.vertex().phi(), 0.);
-	float pprop = sqrt ( prop.momentum().x()*prop.momentum().x() + prop.momentum().y()*prop.momentum().y() + prop.momentum().z()*prop.momentum().z()  );
-	if (debug_) std::cout << " After propagation "  << " vertex " << prop.vertex().x() << " " << prop.vertex().y() << " " << prop.vertex().z() << " momentum " << pprop << std::endl;
+	trueEle_p4 = new reco::Candidate::PolarLorentzVector(prop.particle().E()*sin(prop.particle().vertex().theta()),  prop.particle().vertex().eta(), prop.particle().vertex().phi(), 0.);
+	float pprop = sqrt ( prop.particle().momentum().x()*prop.particle().momentum().x() + prop.particle().momentum().y()*prop.particle().momentum().y() + prop.particle().momentum().z()*prop.particle().momentum().z()  );
+	if (debug_) std::cout << " After propagation "  << " vertex " << prop.particle().vertex().x() << " " << prop.particle().vertex().y() << " " << prop.particle().vertex().z() << " momentum " << pprop << std::endl;
       } else {
 	if (debug_) std::cout << " Prop fails " << std::endl;
 	continue;
