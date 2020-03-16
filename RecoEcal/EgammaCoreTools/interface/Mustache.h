@@ -9,9 +9,17 @@
 namespace reco {
   namespace MustacheKernel {
     bool inMustache(
-        const float maxEta, const float maxPhi, const float ClustE, const float ClusEta, const float ClusPhi);
+		    const float maxEta, const float maxPhi, const float ClustE, const float ClusEta, const float ClusPhi);
     bool inDynamicDPhiWindow(
-        const float seedEta, const float seedPhi, const float ClustE, const float ClusEta, const float clusPhi);
+			     const float seedEta, const float seedPhi, const float ClustE, const float ClusEta, const float clusPhi);
+
+    
+    std::vector<double> pMustache_;  
+    void setMustacheParameters (const std::vector<double>& p) {pMustache_=p;}
+    std::vector<double> pDynPhiWind_;
+    void setDynPhiWindowParameters (const std::vector<double>& p) {pDynPhiWind_=p;}
+    
+    
 
   }  // namespace MustacheKernel
 
@@ -34,6 +42,9 @@ namespace reco {
     int InsideMust() { return included_; }
     int OutsideMust() { return excluded_; }
 
+
+
+
   private:
     template <class RandomAccessPtrIterator>
     void MustacheID(const RandomAccessPtrIterator&,
@@ -47,6 +58,12 @@ namespace reco {
     float LowestClusterEInMustache_;
     int excluded_;
     int included_;
+
+
+
+
+
+
   };
 
 }  // namespace reco

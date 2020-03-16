@@ -88,16 +88,24 @@ namespace {
                    const PFECALSuperClusterAlgo::clustering_type type,
                    const bool dyn_dphi,
                    const double etawidthSuperCluster,
-                   const double phiwidthSuperCluster) {
+                   const double phiwidthSuperCluster,
+                   const std::vector<double> pMust,
+                   const std::vector<double> pDynPhiWind ) {
+    
+
     const double dphi = std::abs(TVector2::Phi_mpi_pi(seed->phi() - x->phi()));
+    reco::MustacheKernel::setDynPhiWindowParameters(pDynPhiWind);
+    
     const bool passes_dphi = ((!dyn_dphi && dphi < phiwidthSuperCluster) ||
                               (dyn_dphi && reco::MustacheKernel::inDynamicDPhiWindow(
-                                               seed->eta(), seed->phi(), x->energy_nocalib(), x->eta(), x->phi())));
+			      seed->eta(), seed->phi(), x->energy_nocalib(), x->eta(), x->phi())));
 
     if (type == PFECALSuperClusterAlgo::kBOX) {
       return (std::abs(seed->eta() - x->eta()) < etawidthSuperCluster && passes_dphi);
     }
     if (type == PFECALSuperClusterAlgo::kMustache) {
+
+      reco::MustacheKernel::setMustacheParameters(pMust);
       return (passes_dphi &&
               reco::MustacheKernel::inMustache(seed->eta(), seed->phi(), x->energy_nocalib(), x->eta(), x->phi()));
     }
@@ -268,7 +276,7 @@ void PFECALSuperClusterAlgo::buildSuperCluster(CalibClusterPtr& seed, CalibClust
       break;
   }
   auto isClusteredWithSeed =
-      std::bind(isClustered, _1, seed, _clustype, useDynamicDPhi_, etawidthSuperCluster, phiwidthSuperCluster);
+    std::bind(isClustered, _1, seed, _clustype, useDynamicDPhi_, etawidthSuperCluster, phiwidthSuperCluster,pMustache_,pDynPhiWin_);
   auto matchesSeedByRecHit = std::bind(isLinkedByRecHit, _1, seed, satelliteThreshold_, fractionForMajority_, 0.1, 0.2);
 
   // this function shuffles the list of clusters into a list

@@ -96,6 +96,10 @@ public:
   void setMajorityFraction(const double f) { fractionForMajority_ = f; }
   void setDropUnseedable(const bool d) { dropUnseedable_ = d; }
 
+  
+  void setMustacheParameters (std::vector<double> pMust) { pMustache_ = pMust;}
+  void setDynPhiWindowParameters (std::vector<double> pDynPhiWind) { pDynPhiWin_ = pDynPhiWind;}
+
   void setIsOOTCollection(bool isOOTCollection) { isOOTCollection_ = isOOTCollection; }
 
   void setCrackCorrections(bool applyCrackCorrections) { applyCrackCorrections_ = applyCrackCorrections; }
@@ -155,6 +159,10 @@ private:
 
   bool applyCrackCorrections_;
   bool threshIsET_;
+
+ 
+  std::vector<double> pMustache_;
+  std::vector<double> pDynPhiWin_;
 
   // OOT photons
   bool isOOTCollection_;
