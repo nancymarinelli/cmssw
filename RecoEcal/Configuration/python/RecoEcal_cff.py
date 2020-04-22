@@ -33,3 +33,4 @@ _ecalClustersHI = ecalClusters.copy()
 _ecalClustersHI += islandClusteringSequence
 for e in [pA_2016, peripheralPbPb, pp_on_AA_2018, pp_on_XeXe_2017, ppRef_2017]:
     e.toReplaceWith(ecalClusters, _ecalClustersHI)
+

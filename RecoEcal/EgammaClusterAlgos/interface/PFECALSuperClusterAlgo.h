@@ -98,6 +98,11 @@ class PFECALSuperClusterAlgo {
   void setMajorityFraction( const double f ) { fractionForMajority_ = f; }
   void setDropUnseedable( const bool d ) { dropUnseedable_ = d; }
 
+
+  void setMustacheParameters (std::vector<double> pMust) { pMustache_ = pMust;}
+  void setDynPhiWindowParameters (std::vector<double> pDynPhiWind) { pDynPhiWin_ = pDynPhiWind;}
+
+
   void setIsOOTCollection( bool isOOTCollection ){ isOOTCollection_ = isOOTCollection; }
 
   void setCrackCorrections( bool applyCrackCorrections) { applyCrackCorrections_ = applyCrackCorrections;}
@@ -106,10 +111,8 @@ class PFECALSuperClusterAlgo {
   void update(const edm::EventSetup&);
   
   
-  std::unique_ptr<reco::SuperClusterCollection>&
-    getEBOutputSCCollection() { return superClustersEB_; }
-  std::unique_ptr<reco::SuperClusterCollection>&
-    getEEOutputSCCollection() { return superClustersEE_; }
+  std::unique_ptr<reco::SuperClusterCollection>& getEBOutputSCCollection() { return superClustersEB_; }
+  std::unique_ptr<reco::SuperClusterCollection>& getEEOutputSCCollection() { return superClustersEE_; }
 
   void loadAndSortPFClusters(const edm::Event &evt);
   
@@ -132,10 +135,8 @@ class PFECALSuperClusterAlgo {
   std::shared_ptr<PFEnergyCalibration> _pfEnergyCalibration;
   clustering_type _clustype;
   energy_weight   _eweight;
-  void buildAllSuperClusters(CalibratedClusterPtrVector&,
-			     double seedthresh);
-  void buildSuperCluster(CalibratedClusterPtr&,
-			 CalibratedClusterPtrVector&); 
+  void buildAllSuperClusters(CalibratedClusterPtrVector&, double seedthresh);
+  void buildSuperCluster(CalibratedClusterPtr&, CalibratedClusterPtrVector&); 
 
   bool verbose_;
   
@@ -163,6 +164,9 @@ class PFECALSuperClusterAlgo {
 
   bool applyCrackCorrections_;
   bool threshIsET_;
+
+  std::vector<double> pMustache_;
+  std::vector<double> pDynPhiWin_;
 
   // OOT photons
   bool isOOTCollection_;

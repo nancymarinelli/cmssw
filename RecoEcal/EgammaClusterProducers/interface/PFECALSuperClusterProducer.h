@@ -72,6 +72,9 @@ class PFECALSuperClusterProducer : public edm::stream::EDProducer<> {
   std::string PFClusterAssociationEBEE_;
   std::string PFClusterAssociationES_;
 
+  std::vector<double> mustacheParams_;
+  std::vector<double> dynPhiWindowParams_;
+
   // OOT photons
   bool isOOTCollection_;
 };

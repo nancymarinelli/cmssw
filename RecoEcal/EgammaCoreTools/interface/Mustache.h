@@ -17,6 +17,12 @@ namespace reco {
 			       const float ClustE, const float ClusEta,
 			       const float clusPhi);
      
+      std::vector<double> pMustache_;
+      void setMustacheParameters (const std::vector<double>& p) {pMustache_=p;}
+      std::vector<double> pDynPhiWind_;
+      void setDynPhiWindowParameters (const std::vector<double>& p) {pDynPhiWind_=p;}
+
+
   }
 
   class Mustache {

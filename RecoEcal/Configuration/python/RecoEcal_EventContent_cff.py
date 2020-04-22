@@ -23,6 +23,7 @@ RecoEcalFEVT = cms.PSet(
         'keep recoPreshowerClusterShapes_multi5x5PreshowerClusterShape_*_*',
         # Particle Flow superclusters
         'keep *_particleFlowSuperClusterECAL_*_*',
+        'keep *_particleFlowSuperClusterECALMustacheNewParams_*_*',
         'keep *_particleFlowSuperClusterOOTECAL_*_*',
 	# DROP statements
 	'drop recoBasicClusters_multi5x5BasicClusters_multi5x5BarrelBasicClusters_*',
@@ -50,6 +51,7 @@ RecoEcalRECO = cms.PSet(
         'keep recoPreshowerClusterShapes_multi5x5PreshowerClusterShape_*_*',
         # Particle Flow superclusters
         'keep *_particleFlowSuperClusterECAL_*_*',
+        'keep *_particleFlowSuperClusterECALMustacheNewParams_*_*',
         'keep *_particleFlowSuperClusterOOTECAL_*_*',
 	# DROP statements
         'drop recoClusterShapes_*_*_*', 
