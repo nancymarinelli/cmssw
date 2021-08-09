@@ -14,7 +14,8 @@ ecal_sim_parameter_map = cms.PSet(
 )
 
 ecal_sim_parameter_map_ph2 = cms.PSet(
-    binOfMaximum = cms.int32(6),
+#    binOfMaximum = cms.int32(6),
+    binOfMaximum = cms.int32(8),
     samplingFactor = cms.double(1.0),
     timePhase = cms.double(0.0),
     simHitToPhotoelectronsBarrel = cms.double(2250.0),

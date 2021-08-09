@@ -26,10 +26,12 @@ phase2_common.toReplaceWith(ecalDigiTask,_phase2_ecalDigiTask)
 
 from Configuration.Eras.Modifier_phase2_ecal_devel_cff import phase2_ecal_devel
 _phase2_ecalDigiTask_devel = cms.Task()
+_phase2_ecalDigiTask_devel.add(simEcalEBTriggerPrimitiveDigis)
 phase2_ecal_devel.toReplaceWith(ecalDigiTask,_phase2_ecalDigiTask_devel)
 
 #phase 2 ecal                                                                                                                                                                                                                                                                   
 def _modifyEcalForPh2( process ):
+    process.load("SimCalorimetry.EcalEBTrigPrimProducers.ecalPhase2TrigPrimESProducer_cff")
     process.load("SimCalorimetry.EcalSimProducers.esEcalLiteDTUPedestalsProducer_cfi")
     process.load("SimCalorimetry.EcalSimProducers.esCATIAGainProducer_cfi")
 

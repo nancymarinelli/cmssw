@@ -11,6 +11,9 @@
    <class name="EcalDataFrame" ClassVersion="10">
     <version ClassVersion="10" checksum="259364627"/>
    </class>
+   <class name="EcalDataFrame_Ph2" ClassVersion="-1">
+    <version ClassVersion="-1" checksum="4122679522"/>
+   </class>
    <class name="ESDataFrame" ClassVersion="10">
     <version ClassVersion="10" checksum="2345603108"/>
    </class>

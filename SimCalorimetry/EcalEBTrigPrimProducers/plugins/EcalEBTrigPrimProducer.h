@@ -19,13 +19,23 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
 #include "CondFormats/DataRecord/interface/EcalTPGLinearizationConstRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGPedestalsRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTPGCrystalStatusRcd.h"
 
+// OLD #include "CondFormats/DataRecord/interface/EcalTPGPedestalsRcd.h"
+// OLD #include "CondFormats/EcalObjects/interface/EcalTPGPedestals.h"
+
+#include "CondFormats/EcalObjects/interface/EcalLiteDTUPedestals.h"
+#include "CondFormats/DataRecord/interface/EcalLiteDTUPedestalsRcd.h"
+
+//#include "CondFormats/EcalObjects/interface/EcalPhase2TPGLinearizationConst.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGLinearizationConst.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGPedestals.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGCrystalStatus.h"
-#include "CondFormats/DataRecord/interface/EcalTPGWeightIdMapRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPhase2TPGWeightIdMapRcd.h"
+#include "CondFormats/DataRecord/interface/EcalPhase2TPGTimeWeightIdMapRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalPhase2TPGWeightIdMap.h"
+#include "CondFormats/EcalObjects/interface/EcalPhase2TPGTimeWeightIdMap.h"
+
+
 #include "CondFormats/DataRecord/interface/EcalTPGWeightGroupRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTPGSlidingWindowRcd.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGSlidingWindow.h"
@@ -36,14 +46,11 @@
 #include "CondFormats/DataRecord/interface/EcalTPGTowerStatusRcd.h"
 #include "CondFormats/DataRecord/interface/EcalTPGSpikeRcd.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGSpike.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGWeightIdMap.h"
+
 #include "CondFormats/EcalObjects/interface/EcalTPGWeightGroup.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGTowerStatus.h"
-#include "Geometry/CaloGeometry/interface/CaloGeometry.h"
-#include "Geometry/CaloTopology/interface/EcalTrigTowerConstituentsMap.h"
-#include "Geometry/Records/interface/CaloGeometryRecord.h"
 
-class EcalEBTrigPrimTestAlgo;
+class EcalEBTrigPrimPhase2Algo;
 
 class EcalEBTrigPrimProducer : public edm::stream::EDProducer<> {
 public:
@@ -56,7 +63,7 @@ public:
   void produce(edm::Event& e, const edm::EventSetup& c) override;
 
 private:
-  std::unique_ptr<EcalEBTrigPrimTestAlgo> algo_;
+  std::unique_ptr<EcalEBTrigPrimPhase2Algo> algo_;
   bool barrelOnly_;
   bool tcpFormat_;
   bool debug_;
@@ -64,20 +71,22 @@ private:
   int nSamples_;
   int nEvent_;
 
-  edm::EDGetTokenT<EBDigiCollection> tokenEBdigi_;
+  edm::EDGetTokenT<EBDigiCollectionPh2> tokenEBdigi_;
   edm::ESGetToken<EcalTPGLinearizationConst, EcalTPGLinearizationConstRcd> theEcalTPGLinearization_Token_;
-  edm::ESGetToken<EcalTPGPedestals, EcalTPGPedestalsRcd> theEcalTPGPedestals_Token_;
+  //edm::ESGetToken<EcalPhase2TPGLinearizationConst, EcalTPGLinearizationConstRcd> theEcalTPGLinearization_Token_;
+// OLD edm::ESGetToken<EcalTPGPedestals, EcalTPGPedestalsRcd> theEcalTPGPedestals_Token_;
+  edm::ESGetToken<EcalLiteDTUPedestalsMap,EcalLiteDTUPedestalsRcd> theEcalTPGPedestals_Token_;
+
   edm::ESGetToken<EcalTPGCrystalStatus, EcalTPGCrystalStatusRcd> theEcalTPGCrystalStatus_Token_;
-  edm::ESGetToken<EcalTPGWeightIdMap, EcalTPGWeightIdMapRcd> theEcalTPGWEightIdMap_Token_;
-  edm::ESGetToken<EcalTPGWeightGroup, EcalTPGWeightGroupRcd> theEcalTPGWEightGroup_Token_;
+  edm::ESGetToken<EcalPhase2TPGWeightIdMap, EcalPhase2TPGWeightIdMapRcd> theEcalTPGWeightIdMap_Token_;
+  edm::ESGetToken<EcalPhase2TPGTimeWeightIdMap, EcalPhase2TPGTimeWeightIdMapRcd> theEcalTPGTimeWeightIdMap_Token_;
+
+  edm::ESGetToken<EcalTPGWeightGroup, EcalTPGWeightGroupRcd> theEcalTPGWeightGroup_Token_;
   edm::ESGetToken<EcalTPGSlidingWindow, EcalTPGSlidingWindowRcd> theEcalTPGSlidingWindow_Token_;
   edm::ESGetToken<EcalTPGLutGroup, EcalTPGLutGroupRcd> theEcalTPGLutGroup_Token_;
   edm::ESGetToken<EcalTPGLutIdMap, EcalTPGLutIdMapRcd> theEcalTPGLutIdMap_Token_;
   edm::ESGetToken<EcalTPGTowerStatus, EcalTPGTowerStatusRcd> theEcalTPGTowerStatus_Token_;
   edm::ESGetToken<EcalTPGSpike, EcalTPGSpikeRcd> theEcalTPGSpike_Token_;
-  //these are only used if we also handle the endcap
-  edm::ESGetToken<EcalTrigTowerConstituentsMap, IdealGeometryRecord> eTTmapToken_;
-  edm::ESGetToken<CaloGeometry, CaloGeometryRecord> theGeometryToken_;
 
   int binOfMaximum_;
   bool fillBinOfMaximumFromHistory_;

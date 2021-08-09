@@ -223,6 +223,12 @@
 <class name="std::pair<const uint32_t, EcalTPGWeights>"/>
 <class name="EcalTPGStripStatus"/>
 <class name="EcalTPGSpike"/>
+<class name="EcalPhase2TPGWeightIdMap"/>
+<class name="EcalPhase2TPGTimeWeightIdMap"/>
+<class name="EcalPhase2TPGWeights"/>
+<class name="std::map<uint32_t, EcalPhase2TPGWeights>"/>
+<class name="std::pair<const uint32_t, EcalPhase2TPGWeights>"/>
+
 
 <class name="EcalTPGFineGrainEBGroup"/>
 <class name="EcalTPGLutGroup"/>

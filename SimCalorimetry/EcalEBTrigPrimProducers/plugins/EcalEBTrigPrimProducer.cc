@@ -19,30 +19,31 @@
 #include "DataFormats/Provenance/interface/ParameterSetID.h"
 #include "DataFormats/Provenance/interface/Provenance.h"
 #include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
-//
+#include "CondFormats/EcalObjects/interface/EcalLiteDTUPedestals.h"
+#include "CondFormats/DataRecord/interface/EcalLiteDTUPedestalsRcd.h"
 
-/*
-#include "CondFormats/DataRecord/interface/EcalTPGFineGrainEBGroupRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGFineGrainEBIdMapRcd.h"
-#include "CondFormats/DataRecord/interface/EcalTPGFineGrainTowerEERcd.h"
 
-#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainEBGroup.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainEBIdMap.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainTowerEE.h"
-#include "CondFormats/DataRecord/interface/EcalTPGFineGrainStripEERcd.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGWeightIdMap.h"
+//#include "CondFormats/DataRecord/interface/EcalTPGFineGrainEBGroupRcd.h"
+//#include "CondFormats/DataRecord/interface/EcalTPGFineGrainEBIdMapRcd.h"
+//#include "CondFormats/DataRecord/interface/EcalTPGFineGrainTowerEERcd.h"
+//#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainEBGroup.h"
+//#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainEBIdMap.h"
+//#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainTowerEE.h"
+//#include "CondFormats/DataRecord/interface/EcalTPGFineGrainStripEERcd.h"
+#include "CondFormats/EcalObjects/interface/EcalPhase2TPGWeightIdMap.h"
+#include "CondFormats/EcalObjects/interface/EcalPhase2TPGTimeWeightIdMap.h"
 #include "CondFormats/EcalObjects/interface/EcalTPGWeightGroup.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainStripEE.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGTowerStatus.h"
-#include "CondFormats/DataRecord/interface/EcalTPGStripStatusRcd.h"
-#include "CondFormats/EcalObjects/interface/EcalTPGStripStatus.h"
-*/
+//#include "CondFormats/EcalObjects/interface/EcalTPGFineGrainStripEE.h"
+//#include "CondFormats/EcalObjects/interface/EcalTPGTowerStatus.h"
+//#include "CondFormats/DataRecord/interface/EcalTPGStripStatusRcd.h"
+//#include "CondFormats/EcalObjects/interface/EcalTPGStripStatus.h"
+
 
 #include "EcalEBTrigPrimProducer.h"
 
 #include <memory>
 
-#include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBTrigPrimTestAlgo.h"
+#include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBTrigPrimPhase2Algo.h"
 
 EcalEBTrigPrimProducer::EcalEBTrigPrimProducer(const edm::ParameterSet& iConfig)
     : barrelOnly_(iConfig.getParameter<bool>("BarrelOnly")),
@@ -51,42 +52,35 @@ EcalEBTrigPrimProducer::EcalEBTrigPrimProducer(const edm::ParameterSet& iConfig)
       famos_(iConfig.getParameter<bool>("Famos")),
       nSamples_(iConfig.getParameter<int>("nOfSamples")),
       binOfMaximum_(iConfig.getParameter<int>("binOfMaximum")) {
-  tokenEBdigi_ = consumes<EBDigiCollection>(iConfig.getParameter<edm::InputTag>("barrelEcalDigis"));
-  theEcalTPGLinearization_Token_ =
-      esConsumes<EcalTPGLinearizationConst, EcalTPGLinearizationConstRcd, edm::Transition::BeginRun>();
-  theEcalTPGPedestals_Token_ = esConsumes<EcalTPGPedestals, EcalTPGPedestalsRcd, edm::Transition::BeginRun>();
-  theEcalTPGCrystalStatus_Token_ =
-      esConsumes<EcalTPGCrystalStatus, EcalTPGCrystalStatusRcd, edm::Transition::BeginRun>();
-  theEcalTPGWEightIdMap_Token_ = esConsumes<EcalTPGWeightIdMap, EcalTPGWeightIdMapRcd, edm::Transition::BeginRun>();
-  theEcalTPGWEightGroup_Token_ = esConsumes<EcalTPGWeightGroup, EcalTPGWeightGroupRcd, edm::Transition::BeginRun>();
-  theEcalTPGSlidingWindow_Token_ =
-      esConsumes<EcalTPGSlidingWindow, EcalTPGSlidingWindowRcd, edm::Transition::BeginRun>();
-  theEcalTPGLutGroup_Token_ = esConsumes<EcalTPGLutGroup, EcalTPGLutGroupRcd, edm::Transition::BeginRun>();
-  theEcalTPGLutIdMap_Token_ = esConsumes<EcalTPGLutIdMap, EcalTPGLutIdMapRcd, edm::Transition::BeginRun>();
-  theEcalTPGTowerStatus_Token_ = esConsumes<EcalTPGTowerStatus, EcalTPGTowerStatusRcd, edm::Transition::BeginRun>();
-  theEcalTPGSpike_Token_ = esConsumes<EcalTPGSpike, EcalTPGSpikeRcd, edm::Transition::BeginRun>();
+
+  tokenEBdigi_ = consumes<EBDigiCollectionPh2>(iConfig.getParameter<edm::InputTag>("barrelEcalDigis"));
+
+  
+  theEcalTPGPedestals_Token_ = esConsumes<EcalLiteDTUPedestalsMap, EcalLiteDTUPedestalsRcd, edm::Transition::BeginRun>();
+  theEcalTPGCrystalStatus_Token_ = esConsumes<EcalTPGCrystalStatus, EcalTPGCrystalStatusRcd, edm::Transition::BeginRun>();
+  theEcalTPGWeightIdMap_Token_ = esConsumes<EcalPhase2TPGWeightIdMap, EcalPhase2TPGWeightIdMapRcd, edm::Transition::BeginRun>();
+  theEcalTPGTimeWeightIdMap_Token_ = esConsumes<EcalPhase2TPGTimeWeightIdMap, EcalPhase2TPGTimeWeightIdMapRcd, edm::Transition::BeginRun>();
+  theEcalTPGWeightGroup_Token_ = esConsumes<EcalTPGWeightGroup, EcalTPGWeightGroupRcd, edm::Transition::BeginRun>();
+
+  //theEcalTPGLinearization_Token_ =  esConsumes<EcalPhase2TPGLinearizationConst, EcalTPGLinearizationConstRcd, edm::Transition::BeginRun>();
+  theEcalTPGLinearization_Token_ =  esConsumes<EcalTPGLinearizationConst, EcalTPGLinearizationConstRcd, edm::Transition::BeginRun>();
+  //theEcalTPGSlidingWindow_Token_ =  esConsumes<EcalTPGSlidingWindow, EcalTPGSlidingWindowRcd, edm::Transition::BeginRun>();
+  // theEcalTPGLutGroup_Token_ = esConsumes<EcalTPGLutGroup, EcalTPGLutGroupRcd, edm::Transition::BeginRun>();
+  //theEcalTPGLutIdMap_Token_ = esConsumes<EcalTPGLutIdMap, EcalTPGLutIdMapRcd, edm::Transition::BeginRun>();
+  //theEcalTPGTowerStatus_Token_ = esConsumes<EcalTPGTowerStatus, EcalTPGTowerStatusRcd, edm::Transition::BeginRun>();
+  //theEcalTPGSpike_Token_ = esConsumes<EcalTPGSpike, EcalTPGSpikeRcd, edm::Transition::BeginRun>();
   //register your products
   produces<EcalEBTrigPrimDigiCollection>();
   if (tcpFormat_)
     produces<EcalEBTrigPrimDigiCollection>("formatTCP");
-  if (not barrelOnly_) {
-    eTTmapToken_ = esConsumes<edm::Transition::BeginRun>();
-    theGeometryToken_ = esConsumes<edm::Transition::BeginRun>();
-  }
 }
 
 void EcalEBTrigPrimProducer::beginRun(edm::Run const& run, edm::EventSetup const& setup) {
   //ProcessHistory is guaranteed to be constant for an entire Run
   //binOfMaximum_ = findBinOfMaximum(fillBinOfMaximumFromHistory_,binOfMaximum_,run.processHistory());
 
-  if (barrelOnly_) {
-    algo_ = std::make_unique<EcalEBTrigPrimTestAlgo>(nSamples_, binOfMaximum_, tcpFormat_, debug_, famos_);
-  } else {
-    auto const& theGeometry = setup.getData(theGeometryToken_);
-    auto const& eTTmap = setup.getData(eTTmapToken_);
-    algo_ = std::make_unique<EcalEBTrigPrimTestAlgo>(
-        &eTTmap, &theGeometry, nSamples_, binOfMaximum_, tcpFormat_, debug_, famos_);
-  }
+  algo_ = std::make_unique<EcalEBTrigPrimPhase2Algo>(
+      setup, nSamples_, binOfMaximum_, tcpFormat_, barrelOnly_, debug_, famos_);
   // get a first version of the records
   cacheID_ = this->getRecords(setup);
   nEvent_ = 0;
@@ -95,48 +89,54 @@ void EcalEBTrigPrimProducer::beginRun(edm::Run const& run, edm::EventSetup const
 unsigned long long EcalEBTrigPrimProducer::getRecords(edm::EventSetup const& setup) {
   // get parameter records for xtals
   auto theEcalTPGLinearization_handle = setup.getHandle(theEcalTPGLinearization_Token_);
+  //const EcalPhase2TPGLinearizationConst* ecaltpLin = theEcalTPGLinearization_handle.product();
   const EcalTPGLinearizationConst* ecaltpLin = theEcalTPGLinearization_handle.product();
   //
-  edm::ESHandle<EcalTPGPedestals> theEcalTPGPedestals_handle = setup.getHandle(theEcalTPGPedestals_Token_);
-  const EcalTPGPedestals* ecaltpPed = theEcalTPGPedestals_handle.product();
+  // OLD edm::ESHandle<EcalTPGPedestals> theEcalTPGPedestals_handle = setup.getHandle(theEcalTPGPedestals_Token_);
+  // OLD const EcalTPGPedestals* ecaltpPed = theEcalTPGPedestals_handle.product();
+
+  edm::ESHandle<EcalLiteDTUPedestalsMap> theEcalTPGPedestals_handle = setup.getHandle(theEcalTPGPedestals_Token_);
+  const EcalLiteDTUPedestalsMap* ecaltpPed = theEcalTPGPedestals_handle.product();
+
+
   //
   edm::ESHandle<EcalTPGCrystalStatus> theEcalTPGCrystalStatus_handle = setup.getHandle(theEcalTPGCrystalStatus_Token_);
   const EcalTPGCrystalStatus* ecaltpgBadX = theEcalTPGCrystalStatus_handle.product();
   //
   //for strips
   //
-  edm::ESHandle<EcalTPGWeightIdMap> theEcalTPGWEightIdMap_handle = setup.getHandle(theEcalTPGWEightIdMap_Token_);
-  const EcalTPGWeightIdMap* ecaltpgWeightMap = theEcalTPGWEightIdMap_handle.product();
+  edm::ESHandle<EcalPhase2TPGWeightIdMap> theEcalTPGWeightIdMap_handle = setup.getHandle(theEcalTPGWeightIdMap_Token_);
+  const EcalPhase2TPGWeightIdMap* ecaltpgWeightMap = theEcalTPGWeightIdMap_handle.product();
   //
-  edm::ESHandle<EcalTPGWeightGroup> theEcalTPGWEightGroup_handle = setup.getHandle(theEcalTPGWEightGroup_Token_);
-  const EcalTPGWeightGroup* ecaltpgWeightGroup = theEcalTPGWEightGroup_handle.product();
+  edm::ESHandle<EcalPhase2TPGTimeWeightIdMap> theEcalTPGTimeWeightIdMap_handle = setup.getHandle(theEcalTPGTimeWeightIdMap_Token_);
+  const EcalPhase2TPGTimeWeightIdMap* ecaltpgTimeWeightMap = theEcalTPGTimeWeightIdMap_handle.product();
+ //
+  edm::ESHandle<EcalTPGWeightGroup> theEcalTPGWeightGroup_handle = setup.getHandle(theEcalTPGWeightGroup_Token_);
+  const EcalTPGWeightGroup* ecaltpgWeightGroup = theEcalTPGWeightGroup_handle.product();
   //
-  edm::ESHandle<EcalTPGSlidingWindow> theEcalTPGSlidingWindow_handle = setup.getHandle(theEcalTPGSlidingWindow_Token_);
-  const EcalTPGSlidingWindow* ecaltpgSlidW = theEcalTPGSlidingWindow_handle.product();
+  //edm::ESHandle<EcalTPGSlidingWindow> theEcalTPGSlidingWindow_handle = setup.getHandle(theEcalTPGSlidingWindow_Token_);
+  //const EcalTPGSlidingWindow* ecaltpgSlidW = theEcalTPGSlidingWindow_handle.product();
   //  TCP
-  edm::ESHandle<EcalTPGLutGroup> theEcalTPGLutGroup_handle = setup.getHandle(theEcalTPGLutGroup_Token_);
-  const EcalTPGLutGroup* ecaltpgLutGroup = theEcalTPGLutGroup_handle.product();
+  //edm::ESHandle<EcalTPGLutGroup> theEcalTPGLutGroup_handle = setup.getHandle(theEcalTPGLutGroup_Token_);
+  //const EcalTPGLutGroup* ecaltpgLutGroup = theEcalTPGLutGroup_handle.product();
   //
-  edm::ESHandle<EcalTPGLutIdMap> theEcalTPGLutIdMap_handle = setup.getHandle(theEcalTPGLutIdMap_Token_);
-  const EcalTPGLutIdMap* ecaltpgLut = theEcalTPGLutIdMap_handle.product();
+  //edm::ESHandle<EcalTPGLutIdMap> theEcalTPGLutIdMap_handle = setup.getHandle(theEcalTPGLutIdMap_Token_);
+  //const EcalTPGLutIdMap* ecaltpgLut = theEcalTPGLutIdMap_handle.product();
   //
-  edm::ESHandle<EcalTPGTowerStatus> theEcalTPGTowerStatus_handle = setup.getHandle(theEcalTPGTowerStatus_Token_);
-  const EcalTPGTowerStatus* ecaltpgBadTT = theEcalTPGTowerStatus_handle.product();
+  //edm::ESHandle<EcalTPGTowerStatus> theEcalTPGTowerStatus_handle = setup.getHandle(theEcalTPGTowerStatus_Token_);
+  //const EcalTPGTowerStatus* ecaltpgBadTT = theEcalTPGTowerStatus_handle.product();
   //
-  edm::ESHandle<EcalTPGSpike> theEcalTPGSpike_handle = setup.getHandle(theEcalTPGSpike_Token_);
-  const EcalTPGSpike* ecaltpgSpike = theEcalTPGSpike_handle.product();
+  //edm::ESHandle<EcalTPGSpike> theEcalTPGSpike_handle = setup.getHandle(theEcalTPGSpike_Token_);
+  //const EcalTPGSpike* ecaltpgSpike = theEcalTPGSpike_handle.product();
 
   ////////////////
-  algo_->setPointers(ecaltpLin,
-                     ecaltpPed,
+  algo_->setPointers(ecaltpPed,
                      ecaltpgBadX,
-                     ecaltpgWeightMap,
-                     ecaltpgWeightGroup,
-                     ecaltpgSlidW,
-                     ecaltpgLutGroup,
-                     ecaltpgLut,
-                     ecaltpgBadTT,
-                     ecaltpgSpike);
+                     ecaltpLin,
+		     ecaltpgWeightMap,
+		     ecaltpgTimeWeightMap,
+		     ecaltpgWeightGroup
+		     );
   return setup.get<EcalTPGLinearizationConstRcd>().cacheIdentifier();
 }
 
@@ -149,7 +149,7 @@ void EcalEBTrigPrimProducer::produce(edm::Event& e, const edm::EventSetup& iSetu
   nEvent_++;
 
   // get input collections
-  edm::Handle<EBDigiCollection> barrelDigiHandle;
+  edm::Handle<EBDigiCollectionPh2> barrelDigiHandle;
 
   if (!e.getByToken(tokenEBdigi_, barrelDigiHandle)) {
     edm::EDConsumerBase::Labels labels;
@@ -172,9 +172,9 @@ void EcalEBTrigPrimProducer::produce(edm::Event& e, const edm::EventSetup& iSetu
 
   // invoke algorithm
 
-  const EBDigiCollection* ebdigi = nullptr;
+  const EBDigiCollectionPh2* ebdigi = nullptr;
   ebdigi = barrelDigiHandle.product();
-  algo_->run(ebdigi, *pOut, *pOutTcp);
+  algo_->run(iSetup, ebdigi, *pOut);
 
   if (debug_)
     std::cout << "produce"
@@ -191,7 +191,7 @@ void EcalEBTrigPrimProducer::produce(edm::Event& e, const edm::EventSetup& iSetu
         if ((*pOut)[i][isam].encodedEt() > 0) {
           nonZeroTP++;
           std::cout << " (*pOut)[i][isam].raw() " << (*pOut)[i][isam].raw() << "  (*pOut)[i][isam].encodedEt() "
-                    << (*pOut)[i][isam].encodedEt() << std::endl;
+                    << (*pOut)[i][isam].encodedEt() << "  (*pOut)[i][isam].time() " <<  (*pOut)[i][isam].time() << std::endl;
         }
       }
     }
@@ -204,6 +204,5 @@ void EcalEBTrigPrimProducer::produce(edm::Event& e, const edm::EventSetup& iSetu
 
   // put result into the Event
   e.put(std::move(pOut));
-  if (tcpFormat_)
-    e.put(std::move(pOutTcp), "formatTCP");
+
 }
