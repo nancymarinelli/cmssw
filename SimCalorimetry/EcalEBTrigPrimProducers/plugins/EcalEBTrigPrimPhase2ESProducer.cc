@@ -396,7 +396,7 @@ void EcalEBTrigPrimPhase2ESProducer::parseWeightsFile() {
   std::vector<unsigned int> param;
   
   int data;
-  std::string filename = "SimCalorimetry/EcalEBTrigPrimProducers/data/" + configFilename_;
+  std::string filename =  configFilename_;
   std::string finalFileName;
   size_t slash = configFilename_.find('/');
   if (slash != 0) {

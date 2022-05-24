@@ -7,7 +7,7 @@ cms.untracked.string('../../../SimCalorimetry/EcalEBTrigPrimProducers/data/avg-p
 cms.untracked.string('../../../SimCalorimetry/EcalEBTrigPrimProducers/data/AmpTimeOnPeakXtalWeights.txt.gz'),
                                                 nSamplesToUse = cms.uint32(12),
                                                 useBXPlusOne = cms.bool(True),
-                                                phaseShift  = cms.double (0.),
+                                                phaseShift  = cms.double (2.581),
                                                 nWeightGroups = cms.uint32(61200),
                                                 Et_sat = cms.double(1998.36),
                                                 xtal_LSB = cms.double(0.0488)

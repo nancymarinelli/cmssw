@@ -1,10 +1,10 @@
+import os
 import FWCore.ParameterSet.Config as cms
 
 # esmodule creating  records + corresponding empty essource
 EcalEBTrigPrimPhase2ESProducer = cms.ESProducer("EcalEBTrigPrimPhase2ESProducer",
     DatabaseFile = cms.untracked.string('TPG_beamv5_MC_startup.txt.gz'),
-#    WeightTextFile = cms.untracked.string('AmpTimeXtalWeights.txt.gz'),
-    WeightTextFile = cms.untracked.string('AmpTimeOnPeakXtalWeights.txt.gz'),
+    WeightTextFile = cms.untracked.string(os.environ['CMSSW_BASE'] + '/src/SimCalorimetry/EcalEBTrigPrimProducers/data/AmpTimeOnPeakXtalWeights.txt.gz'),
     WriteInFile = cms.bool(False)
 )
 
