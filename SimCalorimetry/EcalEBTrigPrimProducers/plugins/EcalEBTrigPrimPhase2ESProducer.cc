@@ -57,6 +57,7 @@ EcalEBTrigPrimPhase2ESProducer::EcalEBTrigPrimPhase2ESProducer(const edm::Parame
       configFilename_(iConfig.getUntrackedParameter<std::string>("WeightTextFile", "")),
       flagPrint_(iConfig.getParameter<bool>("WriteInFile")) {
 
+
   parseWeightsFile();
 
   // the following lines are needed to tell the framework what
