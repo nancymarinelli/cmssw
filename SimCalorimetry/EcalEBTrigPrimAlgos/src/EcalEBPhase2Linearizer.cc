@@ -132,78 +132,19 @@ void EcalEBPhase2Linearizer::process(const EBDigiCollectionPh2::Digi &df, std::v
   // 2  7  12 17 22                                                                                                                                               
   // 1  8  11 18 21                                                                                                                                               
   // 0  9  10 19 20                                                                                                                                               
-                                                                                                                                                                
- 
-  //  for (int i=0;i<df.size();i++) {                                                                                                                               
-  // std::cout <<  df[i] << " ";                                                                                                                                 
-  //}                                                                                                                                                             
-  //std::cout  << " " << std::endl;;                                                                                                                                 
+       
 
-  std::cout << " mult " << " " ;
-  for (int i=0;i<df.size();i++) {                                                                                                                      
-    EcalLiteDTUSample thisSample = df[i];         
-    setInput(thisSample);       
-    std::cout  << mult_ << " ";
-    //    output_percry[i]=doIt();                                                                                                                                    
-  }                                                                                                                                                             
-  std::cout  << " " << std::endl;                                                                                                                                 
-
-  std::cout << " gainID " << " ";
-  for (int i=0;i<df.size();i++) {                                                                                                                      
-    EcalLiteDTUSample thisSample = df[i];         
-    setInput(thisSample);       
-    std::cout  << gainID_ << " ";              
-
-  }
-  std::cout  << " " << std::endl;                                                                                                                                 
-
-
-  std::cout << " Ped " << " ";
-  for (int i=0;i<df.size();i++) {                                                                                                                      
-    EcalLiteDTUSample thisSample = df[i];         
-    setInput(thisSample);       
-    std::cout  << base_ << " ";              
-
-  }
-  std::cout  << " " << std::endl;                                                                                                                                 
-
-
-  std::cout << " i2c " << " ";
-  for (int i=0;i<df.size();i++) {                                                                                                                      
-    EcalLiteDTUSample thisSample = df[i];         
-    setInput(thisSample);       
-    std::cout  << I2CSub_ << " ";              
-    
-  }
-  std::cout  << " " << std::endl;                                                                                                                                 
-
-
-  std::cout << " shift " << " ";
-  for (int i=0;i<df.size();i++) {                                                                                                                      
-    EcalLiteDTUSample thisSample = df[i];         
-    setInput(thisSample);       
-    std::cout  << shift_ << " ";              
-
-  }
-  std::cout  << " " << std::endl;                                                                                                                                 
-
-  std::cout << " lin out " << " " ;
   for (int i=0;i<df.size();i++) {                                                                                                                      
     EcalLiteDTUSample thisSample = df[i];         
     setInput(thisSample);       
     output_percry[i]=doIt();
     std::cout << output_percry[i] << " ";                                                                                                                                    
   }                                                                                                                                                             
-  std::cout  << " " << std::endl;                                                                                                                                 
 
 
 
-                                                                                                                                                  
-  //std::cout << " EcalEBPhase2Linearizer::process(const  .. Final output " << std::endl;                                                                           
-  //for (int i=0;i<df.size();i++) {                                                                                                                               
-    //std::cout << " output_percry " << output_percry[i]<< " ";                                                                                                    
-    
-  //}                                                                                                                                                             
+
+
                                                                                                                                                                 
   return;           
 

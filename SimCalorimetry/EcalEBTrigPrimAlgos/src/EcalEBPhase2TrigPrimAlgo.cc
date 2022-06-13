@@ -83,7 +83,7 @@ void EcalEBPhase2TrigPrimAlgo::init() {
 
   time_reconstructor_ = new EcalEBPhase2TimeReconstructor();
   time_out_.resize(maxNrSamples_);
-  //spike_finder_ = new EcalPhase2SpikeFinder();
+  spike_tagger_ = new EcalEBPhase2SpikeTagger();
 
 
 
@@ -96,7 +96,7 @@ EcalEBPhase2TrigPrimAlgo::~EcalEBPhase2TrigPrimAlgo()
   delete linearizer_; 
   delete amplitude_reconstructor_;
   delete time_reconstructor_ ;
-  //delete spike_finder_;
+  delete spike_tagger_;
 }
 
 
@@ -140,52 +140,44 @@ void EcalEBPhase2TrigPrimAlgo::run(EBDigiCollectionPh2 const * digi,
   int iChannel=0;
   int nXinBCP=0;
   for(int itow=0;itow<nrTowers_;++itow)  {
-
+    
     int index=hitTowers_[itow].first;
     const EcalTrigTowerDetId &thisTower=hitTowers_[itow].second;
     //if (debug_) std::cout << " Data for TOWER num " << itow << " index " << index << " TowerId " << thisTower << " zside " << thisTower.zside() << " ieta " << thisTower.ieta()  << " iphi " << thisTower.iphi() <<  " size " << towerMapEB_[itow].size() << std::endl;    
     // loop over all strips assigned to this trigger tower
     if (  thisTower.zside() < 0 ) continue;
     if  ( ( thisTower.ietaAbs() < 1 || thisTower.ietaAbs() > 6)  || ( thisTower.iphi() < 3 || thisTower.iphi() > 6 ) ) continue;  
-
-
+    
+    
     int nxstals=0;
     for(unsigned int iStrip = 0; iStrip < towerMapEB_[itow].size();++iStrip)
       {
 	//if (debug_) std::cout << " Data for STRIP num " << iStrip << std::endl;    
 	std::vector<EBDataFrame_Ph2> &dataFrames = (towerMapEB_[index])[iStrip].second;//vector of dataframes for this strip, size; nr of crystals/strip
-
+	
 	nxstals = (towerMapEB_[index])[iStrip].first;
 	if (nxstals <= 0) continue;
 	//	if (debug_) std::cout << " Number of xTals " << nxstals << std::endl;
 	
 	const EcalTriggerElectronicsId elId = theMapping_->getTriggerElectronicsId(dataFrames[0].id());
 	uint32_t stripid=elId.rawId() & 0xfffffff8;   
-
-
+	
+	
 	// loop over the xstals in a strip
         
 	for (int iXstal=0;iXstal<nxstals;iXstal++) {
 	  const EBDetId & myid = dataFrames[iXstal].id();
-         
+	  
 	  nXinBCP++;
 	  std::cout << " Data for TOWER num " << itow << " index " << index << " TowerId " << thisTower <<  " size " << towerMapEB_[itow].size() << std::endl; 
 	  std::cout << "nXinBCP " << nXinBCP << " myid rawId " << myid.rawId()  <<" xTal iEta " << myid.ieta() << " iPhi " << myid.iphi() << std::endl;  
           
-
+	  
 	  tp= EcalEBTriggerPrimitiveDigi(  myid );   
 	  tp.setSize( nrSamples_);
-
-          iChannel++;
-	  std::cout <<" " << std::endl; 
-	  std::cout <<" ******  iChannel "<< iChannel << std::endl; 
-	  for ( int i = 0; i<dataFrames[iXstal].size();i++){
-	    std::cout <<" "<< dataFrames[iXstal][i].adc();
-	    // if ( dataFrames[iXstal][i].adc() > 200) std::cout <<"iChannel "<< iChannel << std::endl;
-	  }  
-	  std::cout <<" "<< std::endl;
 	  
-
+          iChannel++;
+	  
 	  if(debug_){
 	    std::cout<<std::endl;
 	    EBDetId id= dataFrames[iXstal].id();
@@ -196,18 +188,18 @@ void EcalEBPhase2TrigPrimAlgo::run(EBDigiCollectionPh2 const * digi,
 	    }
 	    std::cout<<std::endl;
 	  }
-
-
+	  
+	  
 	  //   Call the linearizer
 	  this->getLinearizer()->setParameters( dataFrames[iXstal].id(), ecaltpPed_, ecaltpLin_, ecaltpgBadX_); 
 	  this->getLinearizer()->process( dataFrames[iXstal],lin_out_);
-
+	  
 	  for (unsigned int i =0; i<lin_out_.size();i++){
 	    if( lin_out_[i]>0X3FFFF) lin_out_[i]=0X3FFFF;
 	  }
-
-
- 
+	  
+	  
+	  
           if ( debug_ ) {
 	    std::cout<< "EcalEBPhase2TrigPrimAlgo output of linearize forr channel " << iXstal << std::endl; 
 	    for (unsigned int i =0; i<lin_out_.size();i++){
@@ -215,15 +207,15 @@ void EcalEBPhase2TrigPrimAlgo::run(EBDigiCollectionPh2 const * digi,
 	    }
 	    std::cout<<std::endl;
 	  }
-
-
 	  
-
+	  
+	  
+	  
 	  // Call the amplitude reconstructor
-	  //this->getAmplitudeFinder()->setParameters(stripid,ecaltpgWeightMap_,ecaltpgWeightGroup_);      
+	  
 	  this->getAmplitudeFinder()->setParameters(myid.rawId(),ecaltpgAmplWeightMap_,ecaltpgWeightGroup_);      
 	  this->getAmplitudeFinder()->process(lin_out_,filt_out_);  
-
+	  
 	  if(debug_){
 	    std::cout<< "EcalEBPhase2TrigPrimAlgo output of amp finder is a vector of size: "<<std::dec<<time_out_.size()<<std::endl; 
 	    for (unsigned int ix=0;ix<filt_out_.size();ix++){
@@ -231,32 +223,15 @@ void EcalEBPhase2TrigPrimAlgo::run(EBDigiCollectionPh2 const * digi,
 	    }
 	    std::cout<<std::endl;
 	  }
-
-
- 
-          // temporary cout
-	  std::cout<< " Ampl " << " ";
-	  for (unsigned int ix=0;ix<filt_out_.size();ix++){
-	    std::cout<<std::dec<<filt_out_[ix] << " " ;
-	  }
-	  std::cout<<std::endl;
-
 	  
 	  
-
-
+	  
+	  
 	  // call time finder
 	  this->getTimeFinder()->setParameters(myid.rawId(),ecaltpgTimeWeightMap_,ecaltpgWeightGroup_);
 	  this->getTimeFinder()->process(lin_out_,filt_out_,time_out_);
-
-
-	  // temporary cout
-	  std::cout<< " Time " << " ";
-	  for (unsigned int ix=0;ix<time_out_.size();ix++){
-	    std::cout<<std::dec<<time_out_[ix] << " " ;
-	  }
-	  std::cout<<std::endl;
-
+	  
+	  
 	  
 	  if(debug_){
 	    std::cout<< "EcalEBPhase2TrigPrimAlgo output of timefinder is a vector of size: "<<std::dec<<time_out_.size()<<std::endl; 
@@ -265,128 +240,68 @@ void EcalEBPhase2TrigPrimAlgo::run(EBDigiCollectionPh2 const * digi,
 	    }
 	    std::cout<<std::endl;
 	  }
-
-	  /*
+	  
+	  
 	  // call spike finder
-          this->getSpikeFinder();	  
-
-	  */
-
-
+          this->getSpikeTagger()->setParameters( dataFrames[iXstal].id(), ecaltpPed_, ecaltpLin_, ecaltpgBadX_);	  
+	  bool isASpike = this->getSpikeTagger()->process(lin_out_);
+	  
+	  
+	  
           this->getTPFormatter()->process(filt_out_, time_out_, outEt_, outTime_);
-	  // temporary cout
-	  std::cout << " compressed Et " <<  " "  ;
-	  for (unsigned int iSample =0; iSample<outEt_.size(); ++iSample) {
-	  std::cout << outEt_[iSample] <<  " "  ;
+	  if (debug_) {
+	    
+	    std::cout << " compressed Et " <<  " "  ;
+	    for (unsigned int iSample =0; iSample<outEt_.size(); ++iSample) {
+	      std::cout << outEt_[iSample] <<  " "  ;
+	    }
+	    std::cout<<std::endl;
+	    
+	    std::cout << " compressed time " <<  " "  ;
+	    for (unsigned int iSample =0; iSample<outTime_.size(); ++iSample) {
+	      std::cout << outTime_[iSample] <<  " "  ;
+	    }
+	    std::cout<<std::endl;
 	  }
-	  std::cout<<std::endl;
-
-	  std::cout << " compressed time " <<  " "  ;
-	  for (unsigned int iSample =0; iSample<outEt_.size(); ++iSample) {
-	  std::cout << outTime_[iSample] <<  " "  ;
-	  }
-	  std::cout<<std::endl;
-
-
-
-	  //std::cout << " EcalEBPhase2TrigPrimAlgo  after getting the formatter " << std::endl;
-	  //if (debug_) {
-	    //for (unsigned int iSample =0; iSample<outEt_.size(); ++iSample) {
-	    //std::cout << " outEt " << outEt_[iSample] << " outTime " << outTime_[iSample] << " "  ;
-	    //}
-	    //std::cout<<std::endl;
-	  //}
-
-
+	  
+	  	  
+	  
           // create the final TP samples
 	  int etInADC = 0;;
-    int64_t time= -999;
+	  int64_t time= -999;
 	  int nSam = 0;
 	  for (int iSample = 0; iSample <16; ++iSample) {
 	    etInADC = outEt_[iSample];
-      time =  outTime_[iSample];
+	    time =  outTime_[iSample];
 	    if (debug_) {
 	      std::cout << " outEt " << outEt_[iSample] << " outTime " << outTime_[iSample] << std::endl;
 	      std::cout << " etInADCt " << outEt_[iSample] << " outTime " << time << std::endl;
 	      
 	    }
-	    bool isASpike = false;  // no spikes for now
-
+	    //bool isASpike = false;  // no spikes for now
+	    
 	    tp.setSample(nSam, EcalEBTriggerPrimitiveSample(etInADC, isASpike, time));
 	    nSam++;
 	  }
-
-
-
-
-
+	  
+	  
+	  
+	  
+	  
 	  result.push_back(tp);
-
-
-
+	  
+	  
+	  
 	} // Loop over the xStals
 	
-
-  }//loop over strips in one tower
-  
+	
+      }//loop over strips in one tower
+    
     if ( nXinBCP > 0) std::cout << " Accepted xTals " << nXinBCP << std::endl;
-
-}
-
-
-
-
-  /*
-  for (unsigned int i=0;i<digi->size();i++) {
-    EcalDataFrame_Ph2 myFrame((*digi)[i]);  
-    const EBDetId & myid1 = myFrame.id();
-    tp=  EcalTriggerPrimitiveDigi(  myid1);   
-    tp.setSize( myFrame.size());
-    int nSam=0;
-
-    if (debug_) {
-      std::cout << " data frame size " << myFrame.size() << " Id " <<  myFrame.id()  << std::endl;
-      std::cout << " Sample data ADC: " << std::endl;
-      for (int iSample=0; iSample<myFrame.size(); iSample++) {
-	std::cout << " " << std::dec<< myFrame.sample(iSample).adc() ;
-      }
-      std::cout<<std::endl;
-    }
-
-    
-    this->getLinearizer(i)->setParameters( myFrame.id().rawId(),ecaltpPed_,ecaltpLin_,ecaltpgBadX_) ; 
-    //this->getLinearizer(i)->process( myFrame,lin_out_[i]);
-
-    if (debug_) {
-      std::cout<< "cryst: "<< i <<"  value : "<<std::dec<<std::endl;
-      std::cout<<" lin_out[i].size()= "<<std::dec<<lin_out_[i].size()<<std::endl;
-      for (unsigned int j =0; j<lin_out_[i].size();j++){
-	std::cout <<" "<<std::dec<<(lin_out_[i])[j];
-      }
-      std::cout<<std::endl;
-    }
-
-
-    for (int iSample=0; iSample<myFrame.size(); iSample++) {
-      etInADC= myFrame.sample(iSample).adc();
-      EcalEBTriggerPrimitiveSample mysam(etInADC);
-      tp.setSample(nSam, mysam );
-      nSam++;
-      if (debug_) std::cout << "in Phase2Algo" <<" tp size "<<tp.size() << std::endl;
-    }
-
-    if (!tcpFormat_)
-      result.push_back(tp);
-    else 
-      resultTcp.push_back(tp);
-    
-   
-    if (debug_) std::cout << " result size " << result.size() << std::endl;
-    
-    
     
   }
-  */
+  
+
 
 }
 

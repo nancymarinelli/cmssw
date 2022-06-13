@@ -35,6 +35,7 @@
 #include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBPhase2Linearizer.h"
 #include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBPhase2AmplitudeReconstructor.h"
 #include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBPhase2TimeReconstructor.h"
+#include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBPhase2SpikeTagger.h"
 #include "SimCalorimetry/EcalEBTrigPrimAlgos/interface/EcalEBPhase2TPFormatter.h"
 
 
@@ -158,7 +159,7 @@ class EcalEBPhase2TrigPrimAlgo
   
   EcalEBPhase2AmplitudeReconstructor *amplitude_reconstructor_; 
   EcalEBPhase2TimeReconstructor *time_reconstructor_;
-  //EcalPhase2SpikeFinder *spike_finder_;
+  EcalEBPhase2SpikeTagger *spike_tagger_;
   EcalEBPhase2TPFormatter *tpFormatter_;  
 
   //
@@ -175,7 +176,6 @@ class EcalEBPhase2TrigPrimAlgo
  
 
   EcalEBPhase2Linearizer *getLinearizer () const { return linearizer_;}
-  //old  std::vector<std::vector<int> > lin_out_;
   std::vector<int>  lin_out_;
   //
   EcalEBPhase2AmplitudeReconstructor *getAmplitudeFinder() const { return amplitude_reconstructor_;}
@@ -187,7 +187,7 @@ class EcalEBPhase2TrigPrimAlgo
 
 
   EcalEBPhase2TimeReconstructor *getTimeFinder() const {return time_reconstructor_;}
-  //EcalPhase2SpikeFinder *getSpikeFinder() const {return spike_finder};
+  EcalEBPhase2SpikeTagger *getSpikeTagger() const {return spike_tagger_;}
   EcalEBPhase2TPFormatter *getTPFormatter() const {return tpFormatter_;}  
 
   //
