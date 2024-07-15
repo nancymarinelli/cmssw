@@ -79,7 +79,10 @@ void EcalEBPhase2AmplitudeReconstructor::process() {
     LogDebug("") << " AmplitudeFilter tmpIntOutput " << tmpIntOutput << " shift_ " << shift_ << std::endl;
   if (tmpIntOutput > 0X1FFF)
     tmpIntOutput = 0X1FFF;
-  uint output = tmpIntOutput;  // should be 13 bit uint at this point
+  //tmpIntOutput = tmpIntOutput >> 1;
+  //if (tmpIntOutput > 0x3FF)
+  //  tmpIntOutput = 0x3FF;
+  uint output = tmpIntOutput;  // should be 13 bits uint at this point
   processedOutput_ = output;
   if (debug_)
     LogDebug("") << " AmplitudeFilter  processedOutput_ " << processedOutput_ << std::endl;
